@@ -1,0 +1,78 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.30110.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NoSql.Core", "NoSql.Core\NoSql.Core.csproj", "{BAA6A0D6-46C3-4ABE-AA79-7E0763DCCA6C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{6164BEB3-7171-4988-BFD0-9FAE79B7F161}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NoSql.AdaptorTests", "NoSql.AdaptorTests\NoSql.AdaptorTests.csproj", "{DDD000F0-87C3-4933-92C5-1A68D43D79BD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NoSql.MongoDbDriver", "NoSql.MongoDbDriver\NoSql.MongoDbDriver.csproj", "{9CC7B276-9D6A-4127-BCEE-CA1D66DD9220}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NoSql.ServiceStackRedis", "NoSql.ServiceStackRedis\NoSql.ServiceStackRedis.csproj", "{B9210803-BA36-40D9-A51A-24A1A36C6437}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NoSql.RavenDbClient", "NoSql.RavenDbClient\NoSql.RavenDbClient.csproj", "{47901A0A-2796-453F-9EEE-12DA13509826}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{14ED39D8-5103-49E5-8643-28BABB9716C7}"
+	ProjectSection(SolutionItems) = preProject
+		VersionInfo.cs = VersionInfo.cs
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(TeamFoundationVersionControl) = preSolution
+		SccNumberOfProjects = 6
+		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
+		SccTeamFoundationServer = https://tfs.codeplex.com/tfs/tfs27
+		SccLocalPath0 = .
+		SccProjectUniqueName1 = NoSql.AdaptorTests\\NoSql.AdaptorTests.csproj
+		SccProjectTopLevelParentUniqueName1 = NoSql.sln
+		SccProjectName1 = NoSql.AdaptorTests
+		SccLocalPath1 = NoSql.AdaptorTests
+		SccProjectUniqueName2 = NoSql.Core\\NoSql.Core.csproj
+		SccProjectName2 = NoSql.Core
+		SccLocalPath2 = NoSql.Core
+		SccProjectUniqueName3 = NoSql.MongoDbDriver\\NoSql.MongoDbDriver.csproj
+		SccProjectName3 = NoSql.MongoDbDriver
+		SccLocalPath3 = NoSql.MongoDbDriver
+		SccProjectUniqueName4 = NoSql.RavenDbClient\\NoSql.RavenDbClient.csproj
+		SccProjectName4 = NoSql.RavenDbClient
+		SccLocalPath4 = NoSql.RavenDbClient
+		SccProjectUniqueName5 = NoSql.ServiceStackRedis\\NoSql.ServiceStackRedis.csproj
+		SccProjectName5 = NoSql.ServiceStackRedis
+		SccLocalPath5 = NoSql.ServiceStackRedis
+	EndGlobalSection
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BAA6A0D6-46C3-4ABE-AA79-7E0763DCCA6C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BAA6A0D6-46C3-4ABE-AA79-7E0763DCCA6C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BAA6A0D6-46C3-4ABE-AA79-7E0763DCCA6C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BAA6A0D6-46C3-4ABE-AA79-7E0763DCCA6C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DDD000F0-87C3-4933-92C5-1A68D43D79BD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DDD000F0-87C3-4933-92C5-1A68D43D79BD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DDD000F0-87C3-4933-92C5-1A68D43D79BD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DDD000F0-87C3-4933-92C5-1A68D43D79BD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9CC7B276-9D6A-4127-BCEE-CA1D66DD9220}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9CC7B276-9D6A-4127-BCEE-CA1D66DD9220}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9CC7B276-9D6A-4127-BCEE-CA1D66DD9220}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9CC7B276-9D6A-4127-BCEE-CA1D66DD9220}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B9210803-BA36-40D9-A51A-24A1A36C6437}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B9210803-BA36-40D9-A51A-24A1A36C6437}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B9210803-BA36-40D9-A51A-24A1A36C6437}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B9210803-BA36-40D9-A51A-24A1A36C6437}.Release|Any CPU.Build.0 = Release|Any CPU
+		{47901A0A-2796-453F-9EEE-12DA13509826}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{47901A0A-2796-453F-9EEE-12DA13509826}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{47901A0A-2796-453F-9EEE-12DA13509826}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{47901A0A-2796-453F-9EEE-12DA13509826}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{DDD000F0-87C3-4933-92C5-1A68D43D79BD} = {6164BEB3-7171-4988-BFD0-9FAE79B7F161}
+	EndGlobalSection
+EndGlobal
