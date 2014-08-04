@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("NoSQL, Repository, Abstraction, Design Patterns, MongoDb")]
+[assembly: AssemblyTitle("NoSQL, Repository, Abstraction, Design Patterns, MongoDb, PubComp, PubExp, DannyVarod")]
 [assembly: AssemblyDescription("A MongoDB-based implementation of the NoSQL abstraction layer")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyProduct("PubComp.NoSql.MongoDbDriver")]

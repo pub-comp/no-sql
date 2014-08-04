@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("NoSQL, Repository, Abstraction, Design Patterns")]
+[assembly: AssemblyTitle("NoSQL, Repository, Abstraction, Design Patterns, PubComp, PubExp, DannyVarod")]
 [assembly: AssemblyDescription("A NoSQL abstraction layer")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyProduct("PubComp.NoSql.Core")]
