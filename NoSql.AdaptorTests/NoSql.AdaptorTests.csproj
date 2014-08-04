@@ -20,6 +20,8 @@
     <SccLocalPath>SAK</SccLocalPath>
     <SccAuxPath>SAK</SccAuxPath>
     <SccProvider>SAK</SccProvider>
+    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
+    <RestorePackages>true</RestorePackages>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -116,10 +118,6 @@
       <Project>{9cc7b276-9d6a-4127-bcee-ca1d66dd9220}</Project>
       <Name>NoSql.MongoDbDriver</Name>
     </ProjectReference>
-    <ProjectReference Include="..\NoSql.RavenDbClient\NoSql.RavenDbClient.csproj">
-      <Project>{47901a0a-2796-453f-9eee-12da13509826}</Project>
-      <Name>NoSql.RavenDbClient</Name>
-    </ProjectReference>
     <ProjectReference Include="..\NoSql.ServiceStackRedis\NoSql.ServiceStackRedis.csproj">
       <Project>{b9210803-ba36-40d9-a51a-24a1a36c6437}</Project>
       <Name>NoSql.ServiceStackRedis</Name>
@@ -148,6 +146,13 @@
   </Choose>
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('$(SolutionDir)\.nuget\NuGet.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\.nuget\NuGet.targets'))" />
+  </Target>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

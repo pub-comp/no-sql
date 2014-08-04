@@ -1,3 +1,12 @@
 using System.Reflection;
 
-[assembly: AssemblyFileVersion("1.6.0.0")]
+[assembly: AssemblyCompany("Public Components by Danny Varod")]
+[assembly: AssemblyTrademark("https://pubcomp.codeplex.com/")]
+
+[assembly: AssemblyFileVersion("2.0.0.0")]
+
+#if DEBUG
+    [assembly: AssemblyInformationalVersion("2.0.0-alpha")]
+#else
+    [assembly: AssemblyInformationalVersion("2.0.0")]
+#endif

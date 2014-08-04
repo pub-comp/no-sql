@@ -5,10 +5,10 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("PubComp.NoSql.MongoDbDriver")]
-[assembly: AssemblyDescription("A MongoDB-based implementation of the NoSQL abstraction layer")]
+[assembly: AssemblyTitle("NoSQL, Repository, Abstraction, Design Patterns")]
+[assembly: AssemblyDescription("A NoSQL abstraction layer")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyProduct("PubComp.NoSql.MongoDbDriver")]
+[assembly: AssemblyProduct("PubComp.NoSql.Core")]
 [assembly: AssemblyCopyright("Copyright © 2014")]
 [assembly: AssemblyCulture("")]
 
@@ -18,7 +18,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("24a39f90-e955-4dbc-9d24-5a8bb25e4047")]
+[assembly: Guid("48cafd56-0575-493c-a0b1-a285ca1ad475")]
 
 // Version information for an assembly consists of the following four values:
 //

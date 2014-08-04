@@ -1,0 +1,31 @@
+1.0.0: Initial
+1.1.0: Added GetEntitySet to IDomainContext
+1.2.0: Fixed SaveNavigation - now either adds or updates navigation properties + added AddOrUpdate to IEntitySet
+1.2.1: Fixed bug in Load/Save navigation.
+1.3.0: Removed UpdateWithoutCheck from IEntitySet, added events that enable access control and operations on change/delete/get.
+1.4.0:
+	* Added more specific exception types,
+	* Added events for get, add/modify, delete that also enable blocking operations based on entity
+	* Added reduction to MongoDb adapter, initial results are not faster than using in-memory aggregation
+	* Improved tests
+1.4.1:
+	* MongoDb: Version 1.4.1 fixed bug in Update() of value to null in MongoDb wrapper.
+1.4.2:
+	* MongoDb: More reduction support and tests
+	* Redis: Rolled back to ServiceStack.Redis version 3.9.71 due to license limitations on v4 that prevent bulk testing
+1.4.3:
+	* MongoDb: Added update and increment of single field operations
+1.5.0:
+	* Main: added a new assembly for shared code between the NoSQL types
+	* MongoDb, Redis: Refactored to share LoadNavigation, SaveNavigation code
+	* MongoDb: Added support for KnownDataTypesAttribute as an alternative to BsonKnownTypes
+		usage: list of concrete types e.g. [KnownDataTypes(typeof(MyChildClass1), typeof(MyChildClass1)]
+	* MongoDb: Added support for KnownDataTypesResolverAttribute as an alternative to BsonKnownTypes
+		usage: list of types from which a list of assemblies is generated, from which all inheriting types are searched for
+			e.g. [KnownDataTypesResolver(typeof(MyBaseType1)] - typeof(MyBaseType1).Assembly will be used to search for all types
+2.0.0:
+	* Changed namespace from Experiments.Repositories to PubComp.NoSql (and moved location in CodePlex.com)
+	* Changed MongoDb implementation due to methods previously in use becoming obsolete
+
+Upcoming features:
+Service layer including modify date, state, upsert, roles, rest (odata) queries and more

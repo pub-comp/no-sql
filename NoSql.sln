@@ -13,16 +13,33 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NoSql.MongoDbDriver", "NoSq
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NoSql.ServiceStackRedis", "NoSql.ServiceStackRedis\NoSql.ServiceStackRedis.csproj", "{B9210803-BA36-40D9-A51A-24A1A36C6437}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NoSql.RavenDbClient", "NoSql.RavenDbClient\NoSql.RavenDbClient.csproj", "{47901A0A-2796-453F-9EEE-12DA13509826}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{14ED39D8-5103-49E5-8643-28BABB9716C7}"
 	ProjectSection(SolutionItems) = preProject
+		NuGet.exe = NuGet.exe
+		NuGetPack.exe = NuGetPack.exe
+		Readme.txt = Readme.txt
+		VersionHistory.txt = VersionHistory.txt
 		VersionInfo.cs = VersionInfo.cs
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NoSql.Core.NuGet", "NoSql.Core.NuGet\NoSql.Core.NuGet.csproj", "{1F296FCE-9291-4DDF-9074-077DFA1551C6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NoSql.MongoDbDriver.NuGet", "NoSql.MongoDbDriver.NuGet\NoSql.MongoDbDriver.NuGet.csproj", "{C6D50131-5008-4353-8E54-F39A7CE9B4EC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NoSql.ServiceStackRedis.NuGet", "NoSql.ServiceStackRedis.NuGet\NoSql.ServiceStackRedis.NuGet.csproj", "{5EF724BB-13B5-47D0-86E9-CDF19B3A7E2E}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "NuGetPackages", "NuGetPackages", "{BAD49431-7188-414B-A154-DB2C64790C29}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{B2B1718A-482C-4B23-AA90-7E7585AEE823}"
+	ProjectSection(SolutionItems) = preProject
+		.nuget\NuGet.Config = .nuget\NuGet.Config
+		.nuget\NuGet.exe = .nuget\NuGet.exe
+		.nuget\NuGet.targets = .nuget\NuGet.targets
 	EndProjectSection
 EndProject
 Global
 	GlobalSection(TeamFoundationVersionControl) = preSolution
-		SccNumberOfProjects = 6
+		SccNumberOfProjects = 8
 		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
 		SccTeamFoundationServer = https://tfs.codeplex.com/tfs/tfs27
 		SccLocalPath0 = .
@@ -36,12 +53,21 @@ Global
 		SccProjectUniqueName3 = NoSql.MongoDbDriver\\NoSql.MongoDbDriver.csproj
 		SccProjectName3 = NoSql.MongoDbDriver
 		SccLocalPath3 = NoSql.MongoDbDriver
-		SccProjectUniqueName4 = NoSql.RavenDbClient\\NoSql.RavenDbClient.csproj
-		SccProjectName4 = NoSql.RavenDbClient
-		SccLocalPath4 = NoSql.RavenDbClient
-		SccProjectUniqueName5 = NoSql.ServiceStackRedis\\NoSql.ServiceStackRedis.csproj
-		SccProjectName5 = NoSql.ServiceStackRedis
-		SccLocalPath5 = NoSql.ServiceStackRedis
+		SccProjectUniqueName4 = NoSql.ServiceStackRedis\\NoSql.ServiceStackRedis.csproj
+		SccProjectName4 = NoSql.ServiceStackRedis
+		SccLocalPath4 = NoSql.ServiceStackRedis
+		SccProjectUniqueName5 = NoSql.Core.NuGet\\NoSql.Core.NuGet.csproj
+		SccProjectTopLevelParentUniqueName5 = NoSql.sln
+		SccProjectName5 = NoSql.Core.NuGet
+		SccLocalPath5 = NoSql.Core.NuGet
+		SccProjectUniqueName6 = NoSql.MongoDbDriver.NuGet\\NoSql.MongoDbDriver.NuGet.csproj
+		SccProjectTopLevelParentUniqueName6 = NoSql.sln
+		SccProjectName6 = NoSql.MongoDbDriver.NuGet
+		SccLocalPath6 = NoSql.MongoDbDriver.NuGet
+		SccProjectUniqueName7 = NoSql.ServiceStackRedis.NuGet\\NoSql.ServiceStackRedis.NuGet.csproj
+		SccProjectTopLevelParentUniqueName7 = NoSql.sln
+		SccProjectName7 = NoSql.ServiceStackRedis.NuGet
+		SccLocalPath7 = NoSql.ServiceStackRedis.NuGet
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -64,15 +90,26 @@ Global
 		{B9210803-BA36-40D9-A51A-24A1A36C6437}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B9210803-BA36-40D9-A51A-24A1A36C6437}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B9210803-BA36-40D9-A51A-24A1A36C6437}.Release|Any CPU.Build.0 = Release|Any CPU
-		{47901A0A-2796-453F-9EEE-12DA13509826}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{47901A0A-2796-453F-9EEE-12DA13509826}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{47901A0A-2796-453F-9EEE-12DA13509826}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{47901A0A-2796-453F-9EEE-12DA13509826}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1F296FCE-9291-4DDF-9074-077DFA1551C6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1F296FCE-9291-4DDF-9074-077DFA1551C6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1F296FCE-9291-4DDF-9074-077DFA1551C6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1F296FCE-9291-4DDF-9074-077DFA1551C6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C6D50131-5008-4353-8E54-F39A7CE9B4EC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C6D50131-5008-4353-8E54-F39A7CE9B4EC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C6D50131-5008-4353-8E54-F39A7CE9B4EC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C6D50131-5008-4353-8E54-F39A7CE9B4EC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5EF724BB-13B5-47D0-86E9-CDF19B3A7E2E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5EF724BB-13B5-47D0-86E9-CDF19B3A7E2E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5EF724BB-13B5-47D0-86E9-CDF19B3A7E2E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5EF724BB-13B5-47D0-86E9-CDF19B3A7E2E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{DDD000F0-87C3-4933-92C5-1A68D43D79BD} = {6164BEB3-7171-4988-BFD0-9FAE79B7F161}
+		{1F296FCE-9291-4DDF-9074-077DFA1551C6} = {BAD49431-7188-414B-A154-DB2C64790C29}
+		{C6D50131-5008-4353-8E54-F39A7CE9B4EC} = {BAD49431-7188-414B-A154-DB2C64790C29}
+		{5EF724BB-13B5-47D0-86E9-CDF19B3A7E2E} = {BAD49431-7188-414B-A154-DB2C64790C29}
 	EndGlobalSection
 EndGlobal

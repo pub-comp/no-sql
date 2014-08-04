@@ -7,8 +7,8 @@
     <ProjectGuid>{BAA6A0D6-46C3-4ABE-AA79-7E0763DCCA6C}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>PubComp.NoSQL.Core</RootNamespace>
-    <AssemblyName>PubComp.NoSQL.Core</AssemblyName>
+    <RootNamespace>PubComp.NoSql.Core</RootNamespace>
+    <AssemblyName>PubComp.NoSql.Core</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SccProjectName>SAK</SccProjectName>

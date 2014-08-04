@@ -5,13 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("NoSql.Redis")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyTitle("PubComp.NoSql.SericeStackRedis")]
+[assembly: AssemblyDescription("A ServiceStack.Redis-based implementation of the NoSQL abstraction layer")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("NoSql.Redis")]
-[assembly: AssemblyCopyright("Copyright ©  2014")]
-[assembly: AssemblyTrademark("")]
+[assembly: AssemblyProduct("PubComp.NoSql.ServiceStackRedis")]
+[assembly: AssemblyCopyright("Copyright © 2014")]
 [assembly: AssemblyCulture("")]
 
 // Setting ComVisible to false makes the types in this assembly not visible 

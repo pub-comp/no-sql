@@ -5,13 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("NoSql.RavenDbClient")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyTitle("NoSQL, Repository, Abstraction, Design Patterns, MongoDb")]
+[assembly: AssemblyDescription("A MongoDB-based implementation of the NoSQL abstraction layer")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("NoSql.RavenDbClient")]
-[assembly: AssemblyCopyright("Copyright ©  2014")]
-[assembly: AssemblyTrademark("")]
+[assembly: AssemblyProduct("PubComp.NoSql.MongoDbDriver")]
+[assembly: AssemblyCopyright("Copyright © 2014")]
 [assembly: AssemblyCulture("")]
 
 // Setting ComVisible to false makes the types in this assembly not visible 
@@ -20,7 +18,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("f17ec98f-99c7-430e-89e1-3bc543b8c850")]
+[assembly: Guid("3a0bcc6d-9e57-40bf-b745-cb16ad7d1d2d")]
 
 // Version information for an assembly consists of the following four values:
 //
