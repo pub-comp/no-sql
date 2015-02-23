@@ -57,6 +57,7 @@
     <Compile Include="MongoDbConnectionInfo.cs" />
     <Compile Include="MongoDbContext.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ReductionResult.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NoSql.Core\NoSql.Core.csproj">

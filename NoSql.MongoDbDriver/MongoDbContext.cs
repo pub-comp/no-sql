@@ -164,6 +164,81 @@ namespace PubComp.NoSql.MongoDbDriver
             return result;
         }
 
+        public IEntitySet<TKey, TEntity> GetEntitySet<TKey, TEntity>(string collectionName)
+            where TEntity : class, IEntity<TKey>, new()
+        {
+            var entitySet = new EntitySet<TKey, TEntity>(this, this.db, collectionName);
+            return entitySet;
+        }
+
+        private static void MapReduceInner<TResult>(
+            MongoDB.Driver.MongoCollection collection,
+            MongoDB.Driver.IMongoQuery query,
+            string mapFunction, string reduceFunction, string finalizeFunction,
+            bool doGetResults, out IEnumerable<TResult> results,
+            ReduceStoreMode storeMode, string resultSet)
+        {
+            if (string.IsNullOrEmpty(resultSet))
+                storeMode = ReduceStoreMode.None;
+
+            MongoDB.Driver.MapReduceOutputMode outputMode;
+            String outputCollectionName;
+
+            switch (storeMode)
+            {
+                case ReduceStoreMode.NewSet:
+                    outputMode = MongoDB.Driver.MapReduceOutputMode.Replace;
+                    outputCollectionName = resultSet;
+                    break;
+                case ReduceStoreMode.ReplaceItems:
+                    outputMode = MongoDB.Driver.MapReduceOutputMode.Merge;
+                    outputCollectionName = resultSet;
+                    break;
+                case ReduceStoreMode.Combine:
+                    outputMode = MongoDB.Driver.MapReduceOutputMode.Reduce;
+                    outputCollectionName = resultSet;
+                    break;
+                default:
+                    outputMode = MongoDB.Driver.MapReduceOutputMode.Inline;
+                    outputCollectionName = null;
+                    break;
+            }
+
+            var reductionResults = collection.MapReduce(
+                new MongoDB.Driver.MapReduceArgs
+                {
+                    Query = query,
+                    MapFunction = mapFunction,
+                    ReduceFunction = reduceFunction,
+                    FinalizeFunction = finalizeFunction,
+                    OutputMode = outputMode,
+                    OutputCollectionName = outputCollectionName
+                });
+
+            results = (doGetResults) ?
+                    ((storeMode == ReduceStoreMode.None)
+                        ? reductionResults.GetInlineResultsAs<TResult>()
+                        : reductionResults.GetResultsAs<TResult>())
+                    : null;
+        }
+
+        public void MapReduce<TEntity, TResult>(
+            string collectionName,
+            Expression<Func<TEntity, bool>> queryExpression,
+            string mapFunction, string reduceFunction, string finalizeFunction,
+            bool doGetResults, out IEnumerable<TResult> results,
+            ReduceStoreMode storeMode = ReduceStoreMode.None, string resultSet = null)
+        {
+            var collection = this.innerContext.GetServer().GetDatabase(db).GetCollection<TEntity>(collectionName);
+
+            var query = new MongoDB.Driver.Builders.QueryBuilder<TEntity>().Where(queryExpression);
+
+            MapReduceInner<TResult>(
+                collection, query,
+                mapFunction, reduceFunction, finalizeFunction,
+                doGetResults, out results, storeMode, resultSet);
+        }
+
         public abstract class EntitySet
         {
             internal abstract void UpdateIndexes(bool removeStaleIndexes);
@@ -221,7 +296,16 @@ namespace PubComp.NoSql.MongoDbDriver
             internal EntitySet(MongoDbContext parent, string db)
             {
                 this.parent = parent;
-                this.innerSet = parent.innerContext.GetServer().GetDatabase(db).GetCollection<TEntity>(typeof(TEntity).Name.ToLower());
+                this.innerSet = parent.innerContext.GetServer().GetDatabase(db).GetCollection<TEntity>(
+                    typeof(TEntity).Name.ToLower());
+                this.parentType = parent.GetType();
+            }
+
+            internal EntitySet(MongoDbContext parent, string db, string collectionName)
+            {
+                this.parent = parent;
+                this.innerSet = parent.innerContext.GetServer().GetDatabase(db).GetCollection<TEntity>(
+                    collectionName);
                 this.parentType = parent.GetType();
             }
 
@@ -756,51 +840,12 @@ namespace PubComp.NoSql.MongoDbDriver
                 ReduceStoreMode storeMode = ReduceStoreMode.None, string resultSet = null)
                 where TResult : new()
             {
-                if (string.IsNullOrEmpty(resultSet))
-                    storeMode = ReduceStoreMode.None;
-
-                MongoDB.Driver.MapReduceOutputMode outputMode;
-                String outputCollectionName;
-                //MongoDB.Driver.MapReduceOutputMode
-
-                switch (storeMode)
-                {
-                    case ReduceStoreMode.NewSet:
-                        outputMode = MongoDB.Driver.MapReduceOutputMode.Replace;
-                        outputCollectionName = resultSet;
-                        break;
-                    case ReduceStoreMode.ReplaceItems:
-                        outputMode = MongoDB.Driver.MapReduceOutputMode.Merge;
-                        outputCollectionName = resultSet;
-                        break;
-                    case ReduceStoreMode.Combine:
-                        outputMode = MongoDB.Driver.MapReduceOutputMode.Reduce;
-                        outputCollectionName = resultSet;
-                        break;
-                    default:
-                        outputMode = MongoDB.Driver.MapReduceOutputMode.Inline;
-                        outputCollectionName = null;
-                        break;
-                }
-
                 var query = new MongoDB.Driver.Builders.QueryBuilder<TEntity>().Where(queryExpression);
 
-                var reductionResults = this.innerSet.MapReduce(
-                    new MongoDB.Driver.MapReduceArgs
-                    {
-                        Query = query,
-                        MapFunction = mapFunction,
-                        ReduceFunction = reduceFunction,
-                        FinalizeFunction = finalizeFunction,
-                        OutputMode = outputMode,
-                        OutputCollectionName = outputCollectionName
-                    });
-
-                results = (doGetResults) ?
-                        ((storeMode == ReduceStoreMode.None)
-                            ? reductionResults.GetInlineResultsAs<TResult>()
-                            : reductionResults.GetResultsAs<TResult>())
-                        : null;
+                MapReduceInner<TResult>(
+                    this.innerSet, query,
+                    mapFunction, reduceFunction, finalizeFunction,
+                    doGetResults, out results, storeMode, resultSet);
             }
 
             #region Navigation

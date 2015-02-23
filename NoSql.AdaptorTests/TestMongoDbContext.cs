@@ -146,14 +146,14 @@ namespace PubComp.NoSql.AdaptorTests
                 context.UpdateIndexes(true);
 
                 // Select function for iterator
-                string map =
+                const string map =
                     @"function() {
                         var transaction = this;
                         emit(transaction.OwnerId, { NumberOfTransactions: 1, Money: transaction.Money });
                     }";
 
                 // Aggregation of values into a single result
-                string reduce =
+                const string reduce =
                     @"function(key, values) {
                         var result = { NumberOfTransactions: 0, Money: 0 }; // initial value
                         values.forEach(function(value) { // aggregation function
@@ -164,17 +164,17 @@ namespace PubComp.NoSql.AdaptorTests
                     }";
 
                 // Enables normalizing result e.g. converting sum into average
-                string finalize =
+                const string finalize =
                     @"function(key, value){
                         value.Money = value.Money - 0.1; // Usage fees
                         return value;
                     }";
 
-                IEnumerable<ReductionResult<AccountStatus>> reduction;
+                IEnumerable<ReductionResult<Guid, AccountStatus>> reduction;
                 
                 var set = (MongoDbDriver.MongoDbContext.EntitySet<Guid, EntityForCalc>)context.EntitiesForCalc;
 
-                set.Reduce<ReductionResult<AccountStatus>>(
+                set.Reduce<ReductionResult<Guid, AccountStatus>>(
                     e => e.OwnerId == id1, map, reduce, finalize, true, out reduction, ReduceStoreMode.None);
 
                 var results = reduction.ToList();
@@ -205,21 +205,21 @@ namespace PubComp.NoSql.AdaptorTests
                 context.UpdateIndexes(true);
 
                 // Select function for iterator
-                string map1 =
+                const string map1 =
                     @"function() {
                         var e = this;
                         emit(e._id, { Name: e.Name, NumberOfTransactions: 0, Money: 0 });
                     }";
 
                 // Select function for iterator
-                string map2 =
+                const string map2 =
                     @"function() {
                         var e = this;
                         emit(e.OwnerId, { Name: null, NumberOfTransactions: 1, Money: e.Money });
                     }";
 
                 // Aggregation of values into a single result
-                string reduce =
+                const string reduce =
                     @"function(key, values) {
                         var result = { Name: null, NumberOfTransactions: 0, Money: 0 }; // initial value
                         values.forEach(function(value) { // aggregation function
@@ -237,17 +237,17 @@ namespace PubComp.NoSql.AdaptorTests
                         return value;
                     }";
 
-                IEnumerable<ReductionResult<AccountStatusWithName>> reduction;
+                IEnumerable<ReductionResult<Guid, AccountStatusWithName>> reduction;
 
                 var set1 = (MongoDbDriver.MongoDbContext.EntitySet<Guid, EntityWithGuid>)context.EntitiesWithGuid;
 
-                set1.Reduce<ReductionResult<AccountStatusWithName>>(
+                set1.Reduce<ReductionResult<Guid, AccountStatusWithName>>(
                     e => e.Id == id1, map1, reduce, finalize, false, out reduction,
                     ReduceStoreMode.NewSet, "reductionResults");
 
                 var set2 = (MongoDbDriver.MongoDbContext.EntitySet<Guid, EntityForCalc>)context.EntitiesForCalc;
 
-                set2.Reduce<ReductionResult<AccountStatusWithName>>(
+                set2.Reduce<ReductionResult<Guid, AccountStatusWithName>>(
                     e => e.OwnerId == id1, map2, reduce, finalize, true, out reduction,
                     ReduceStoreMode.Combine, "reductionResults");
 
@@ -263,10 +263,62 @@ namespace PubComp.NoSql.AdaptorTests
             }
         }
 
-        public class ReductionResult<TResult>
+        [TestMethod]
+        public void TestReductionOnDynamicallyNamedCollection()
         {
-            public Guid _id { get; set; }
-            public TResult value { get; set; }
+            // Note: The reduction failed when I attempted to use Decimal instead of Double
+
+            Guid id1 = Guid.NewGuid();
+            Guid id2 = Guid.NewGuid();
+
+            int numberOfTransactions = 1000;
+            double total1, total2;
+            PrepareReductionData(id1, id2, numberOfTransactions, out total1, out total2);
+
+            using (var context = getMockContext() as MockMongoDbContext)
+            {
+                context.UpdateIndexes(true);
+
+                // Select function for iterator
+                const string map =
+                    @"function() {
+                        var transaction = this;
+                        emit(transaction.OwnerId, { NumberOfTransactions: 1, Money: transaction.Money });
+                    }";
+
+                // Aggregation of values into a single result
+                const string reduce =
+                    @"function(key, values) {
+                        var result = { NumberOfTransactions: 0, Money: 0 }; // initial value
+                        values.forEach(function(value) { // aggregation function
+                            result.NumberOfTransactions += value.NumberOfTransactions;
+                            result.Money += value.Money;
+                        });
+                        return result;
+                    }";
+
+                // Enables normalizing result e.g. converting sum into average
+                const string finalize =
+                    @"function(key, value){
+                        value.Money = value.Money - 0.1; // Usage fees
+                        return value;
+                    }";
+
+                IEnumerable<ReductionResult<Guid, AccountStatus>> reduction;
+
+                context.MapReduce<EntityForCalc, ReductionResult<Guid, AccountStatus>>(
+                    @"entityforcalc", e => e.OwnerId == id1,
+                    map, reduce, finalize, true, out reduction, ReduceStoreMode.None);
+
+                var results = reduction.ToList();
+
+                Assert.AreEqual(1, results.Count);
+
+                Assert.AreEqual(id1, results[0]._id);
+
+                Assert.AreEqual(numberOfTransactions, results[0].value.NumberOfTransactions);
+                Assert.IsTrue(Math.Abs(total1 - 0.1 - results[0].value.Money) <= 1);
+            }
         }
 
         public class AccountStatus
@@ -308,7 +360,7 @@ namespace PubComp.NoSql.AdaptorTests
                     {
                         Id = id,
                         Count = 9,
-                        Text = "asdfg",
+                        Text = "test",
                     }, "Text");
             }
 
@@ -317,7 +369,7 @@ namespace PubComp.NoSql.AdaptorTests
                 var entity = context.EntitiesForUpdates.Get(id);
                 Assert.AreEqual(id, entity.Id);
                 Assert.AreEqual(7, entity.Count);
-                Assert.AreEqual("asdfg", entity.Text);
+                Assert.AreEqual("test", entity.Text);
             }
         }
 
