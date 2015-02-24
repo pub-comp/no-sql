@@ -32,5 +32,9 @@
 	* MongoDb adaptor: Enabled getting an entity set by name
 	* MongoDb adaptor: Added generic type for reduction results (ReductionResult<,>)
 
+2.2.0:
+	* MongoDb adaptor: Added AddIndex() method to entity set, to enable adding indexes to map reduce results/named collections
+	* Tested with MongoCSharpDriver 1.10.0
+
 Upcoming features:
 Service layer including modify date, state, upsert, roles, rest (odata) queries and more

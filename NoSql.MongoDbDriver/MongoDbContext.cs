@@ -338,6 +338,11 @@ namespace PubComp.NoSql.MongoDbDriver
                     this.CreateIndex(indexDefinition);
             }
 
+            public void AddIndex(IndexDefinition indexDefinition)
+            {
+                this.CreateIndex(indexDefinition);
+            }
+
             private bool IsEqualToIndex(IndexDefinition indexDefintion, MongoDB.Driver.IndexInfo indexInfo)
             {
                 var names1 = indexDefintion.Fields.Select(f => f.Name).ToList();
