@@ -63,12 +63,19 @@ namespace PubComp.NoSql.AdaptorTests
 
             using (var uow = getMockContext())
             {
-                var set = uow.EntitiesWithGuid;
+                var set = uow.EntitiesForUpdates;
 
-                var o1 = new EntityWithGuid
+                var o1 = new EntityForUpdates
                 {
                     Id = id,
-                    Name = "o1",
+                    Text = "o1",
+                    Inners = new List<InnerClass>
+                    {
+                        new InnerClass
+                        {
+                            Property = 1,
+                        },
+                    },
                 };
 
                 set.Add(o1);
@@ -76,11 +83,14 @@ namespace PubComp.NoSql.AdaptorTests
 
             using (var uow = getMockContext())
             {
-                var set = uow.EntitiesWithGuid;
+                var set = uow.EntitiesForUpdates;
 
                 var o2 = set.Get(id);
 
-                Assert.AreEqual("o1", o2.Name);
+                Assert.AreEqual("o1", o2.Text);
+                Assert.IsNotNull(o2.Inners.Count);
+                Assert.AreEqual(1, o2.Inners.Count);
+                Assert.IsTrue(o2.Inners.Any(i => i.Property == 1));
             }
         }
 
@@ -91,12 +101,19 @@ namespace PubComp.NoSql.AdaptorTests
 
             using (var uow = getMockContext())
             {
-                var set = uow.EntitiesWithGuid;
+                var set = uow.EntitiesForUpdates;
 
-                var o1 = new EntityWithGuid
+                var o1 = new EntityForUpdates
                 {
                     Id = id,
-                    Name = "o1",
+                    Text = "o1",
+                    Inners = new List<InnerClass>
+                    {
+                        new InnerClass
+                        {
+                            Property = 2,
+                        },
+                    },
                 };
 
                 set.Add(o1);
@@ -104,12 +121,23 @@ namespace PubComp.NoSql.AdaptorTests
 
             using (var uow = getMockContext())
             {
-                var set = uow.EntitiesWithGuid;
+                var set = uow.EntitiesForUpdates;
 
-                var o2 = new EntityWithGuid
+                var o2 = new EntityForUpdates
                 {
                     Id = id,
-                    Name = "o1-updated",
+                    Text = "o1-updated",
+                    Inners = new List<InnerClass>
+                    {
+                        new InnerClass
+                        {
+                            Property = 3,
+                        },
+                        new InnerClass
+                        {
+                            Property = 5,
+                        },
+                    },
                 };
 
                 set.Update(o2);
@@ -117,11 +145,15 @@ namespace PubComp.NoSql.AdaptorTests
 
             using (var uow = getMockContext())
             {
-                var set = uow.EntitiesWithGuid;
+                var set = uow.EntitiesForUpdates;
 
                 var o3 = set.Get(id);
 
-                Assert.AreEqual("o1-updated", o3.Name);
+                Assert.AreEqual("o1-updated", o3.Text);
+                Assert.IsNotNull(o3.Inners.Count);
+                Assert.AreEqual(2, o3.Inners.Count);
+                Assert.IsTrue(o3.Inners.Any(i => i.Property == 3));
+                Assert.IsTrue(o3.Inners.Any(i => i.Property == 5));
             }
         }
 

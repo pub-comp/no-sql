@@ -603,8 +603,25 @@ namespace PubComp.NoSql.MongoDbDriver
                         continue;
 
                     var name = prop.Name;
-                    var value = MongoDB.Bson.BsonValue.Create(prop.GetValue(entity, new object[] { }));
-                    value = value ?? MongoDB.Bson.BsonNull.Value;
+                    var objValue = prop.GetValue(entity, new object[] { });
+
+                    if (objValue == null)
+                        objValue = MongoDB.Bson.BsonNull.Value;
+
+                    MongoDB.Bson.BsonValue value;
+                    try
+                    {
+                        MongoDB.Bson.BsonTypeMapper.TryMapToBsonValue(objValue, out value);
+                    }
+                    catch (System.ArgumentException)
+                    {
+                        value = null;
+                    }
+
+                    if (value == null)
+                    {
+                        value = MongoDB.Bson.BsonExtensionMethods.ToBsonDocument(objValue);
+                    }
 
                     if (updateBuilder == null)
                     {

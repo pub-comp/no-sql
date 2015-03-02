@@ -12,5 +12,6 @@ namespace PubComp.NoSql.AdaptorTests.Mock
         public Guid Id { get; set; }
         public int Count { get; set; }
         public string Text { get; set; }
+        public List<InnerClass> Inners { get; set; }
     }
 }

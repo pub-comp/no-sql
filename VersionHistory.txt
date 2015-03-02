@@ -40,5 +40,8 @@
 	* MongoDb adaptor: DbIgnore now works with inheritance
 	* Redis adaptor: DbIgnore now works with inheritance
 
+2.3.1:
+	* MongoDb adaptor: Fixed update for complex properties
+
 Upcoming features:
 Service layer including modify date, state, upsert, roles, rest (odata) queries and more
