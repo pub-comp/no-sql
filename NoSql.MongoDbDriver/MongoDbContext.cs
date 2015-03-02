@@ -4,8 +4,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
 using System.Reflection;
 using MongoDB.Driver.Linq;
 using PubComp.NoSql.Core;
@@ -258,20 +256,31 @@ namespace PubComp.NoSql.MongoDbDriver
             {
                 UpdatableProperties = new List<PropertyInfo>();
 
-                var mapper = MongoDB.Bson.Serialization.BsonClassMap.RegisterClassMap<TEntity>(cm =>
-                    {
-                        cm.AutoMap();
-                    });
+                var mapper = GetMapper(typeof(TEntity));
 
-                foreach (var prop in typeof(TEntity).GetProperties())
+                var mappers = new Dictionary<String, MongoDB.Bson.Serialization.BsonClassMap>
+                {
+                    { typeof(TEntity).FullName, mapper }
+                };
+
+                var properties = ContextUtils.GetProperiesOfTypeAndSubTypes(typeof(TEntity));
+
+                foreach (var prop in properties)
                 {
                     if (prop.Name == "Id" || !prop.CanRead || !prop.CanWrite || prop.GetIndexParameters().Any())
                         continue;
 
+                    MongoDB.Bson.Serialization.BsonClassMap currentMapper;
+                    if (!mappers.TryGetValue(prop.DeclaringType.FullName, out currentMapper))
+                    {
+                        currentMapper = GetMapper(prop.DeclaringType);
+                        mappers.Add(prop.DeclaringType.FullName, currentMapper);
+                    }
+
                     if (prop.GetCustomAttributes(typeof(DbIgnoreAttribute), true).Any()
                         || prop.GetCustomAttributes(typeof(NavigationAttribute), true).Any())
                     {
-                        mapper.UnmapProperty(prop.Name);
+                        currentMapper.UnmapProperty(prop.Name);
                         continue;
                     }
 
@@ -279,7 +288,7 @@ namespace PubComp.NoSql.MongoDbDriver
                     {
                         var dateOnly = prop.GetCustomAttributes(typeof(DateOnlyAttribute), true).Any();
 
-                        mapper.GetMemberMap(prop.Name)
+                        currentMapper.GetMemberMap(prop.Name)
                             .SetSerializationOptions(
                                 new MongoDB.Bson.Serialization.Options.DateTimeSerializationOptions
                                 {
@@ -291,6 +300,27 @@ namespace PubComp.NoSql.MongoDbDriver
 
                     UpdatableProperties.Add(prop);
                 }
+            }
+
+            private static MongoDB.Bson.Serialization.BsonClassMap GetMapper(Type type)
+            {
+                var genericMethod = typeof(EntitySet<TKey, TEntity>).GetMethod("GenericGetMapper",
+                    BindingFlags.NonPublic | BindingFlags.Static);
+
+                var specificMethod = genericMethod.MakeGenericMethod(type);
+                var result = specificMethod.Invoke(null, new object[0]);
+                return result as MongoDB.Bson.Serialization.BsonClassMap;
+            }
+
+            // ReSharper disable once UnusedMember.Local
+            private static MongoDB.Bson.Serialization.BsonClassMap GenericGetMapper<T>()
+            {
+                var mapper = MongoDB.Bson.Serialization.BsonClassMap.RegisterClassMap<T>(cm =>
+                    {
+                        cm.AutoMap();
+                    });
+
+                return mapper;
             }
 
             internal EntitySet(MongoDbContext parent, string db)
@@ -567,6 +597,11 @@ namespace PubComp.NoSql.MongoDbDriver
 
                 foreach (var prop in UpdatableProperties)
                 {
+                    var declaringType = prop.DeclaringType;
+                    var currentType = entity.GetType();
+                    if (currentType != declaringType && !currentType.IsSubclassOf(declaringType))
+                        continue;
+
                     var name = prop.Name;
                     var value = MongoDB.Bson.BsonValue.Create(prop.GetValue(entity, new object[] { }));
                     value = value ?? MongoDB.Bson.BsonNull.Value;

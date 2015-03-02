@@ -47,8 +47,6 @@ namespace PubComp.NoSql.AdaptorTests.Mock
 
         public IEntitySet<Guid, MultiIDEntity> MultiIDEntities { get; private set; }
 
-        public IEntitySet<Guid, EntityWithAdditionalData> EntitiesWithAdditionalData { get; private set; }
-
         public IEntitySet<Guid, EntityWithNavigation> EntitiesWithNavigation { get; private set; }
 
         public IEntitySet<Guid, InfoBase> Infos { get; private set; }
@@ -60,6 +58,10 @@ namespace PubComp.NoSql.AdaptorTests.Mock
         public IEntitySet<Guid, EntityForUpdates> EntitiesForUpdates { get; private set; }
 
         public IEntitySet<Guid, InheritanceBase1> InheritanceEntities { get; private set; }
+
+        public IEntitySet<Guid, EntityWithIgnoredData> EntityWithIgnoredData { get; private set; }
+
+        public IEntitySet<Guid, InhertianceEntityWithIgnoredData> InhertianceEntityWithIgnoredData { get; private set; }
 
         public new IFileSet<Guid> Files { get; private set; }
     }

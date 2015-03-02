@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using PubComp.NoSql.Core;
 using PubComp.NoSql.AdaptorTests.Mock;
@@ -733,23 +731,59 @@ namespace PubComp.NoSql.AdaptorTests
 
             using (var uow = getMockContext())
             {
-                Assert.AreEqual(0, uow.MultiIDEntities.AsQueryable().Count());
+                Assert.AreEqual(0, uow.EntityWithIgnoredData.AsQueryable().Count());
 
-                var item = new Mock.EntityWithAdditionalData
+                var item = new Mock.EntityWithIgnoredData
                 {
                     Id = id1,
                     Name = "xxx",
-                    AdditionalData = "yyy",
+                    IgnoreThisString = "yyy",
+                    IgnoreThisObject = new InnerClass { Property = 1 },
+                    IgnoreThisStruct = new InnerStruct { Field = 2 },
                 };
 
-                uow.EntitiesWithAdditionalData.Add(item);
+                uow.EntityWithIgnoredData.Add(item);
             }
 
             using (var uow = getMockContext())
             {
-                var item = uow.EntitiesWithAdditionalData.Get(id1);
+                var item = uow.EntityWithIgnoredData.Get(id1);
                 Assert.AreEqual("xxx", item.Name);
-                Assert.AreEqual(null, item.AdditionalData);
+                Assert.AreEqual(null, item.IgnoreThisObject);
+                Assert.AreEqual(default(InnerStruct), item.IgnoreThisStruct);
+            }
+        }
+
+        [TestMethod]
+        public void TestDbIgnoreWithInheritance()
+        {
+            var id1 = new Guid("{05144A99-A6A0-4D87-BB36-2CE0A91331DA}");
+
+            using (var uow = getMockContext())
+            {
+                Assert.AreEqual(0, uow.InhertianceEntityWithIgnoredData.AsQueryable().Count());
+
+                var item = new Mock.InhertianceEntityWithIgnoredDataChild
+                {
+                    Id = id1,
+                    Name = "xxx",
+                    IgnoreThisParentString = "abc",
+                    IgnoreThisString = "yyy",
+                    IgnoreThisObject = new InnerClass { Property = 1 },
+                    IgnoreThisStruct = new InnerStruct { Field = 2 },
+                };
+
+                uow.InhertianceEntityWithIgnoredData.Add(item);
+            }
+
+            using (var uow = getMockContext())
+            {
+                var item = uow.InhertianceEntityWithIgnoredData.Get(id1) as InhertianceEntityWithIgnoredDataChild;
+                Assert.AreEqual("xxx", item.Name);
+                Assert.AreEqual(null, item.IgnoreThisParentString);
+                Assert.AreEqual(null, item.IgnoreThisString);
+                Assert.AreEqual(null, item.IgnoreThisObject);
+                Assert.AreEqual(default(InnerStruct), item.IgnoreThisStruct);
             }
         }
 

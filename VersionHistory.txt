@@ -36,5 +36,9 @@
 	* MongoDb adaptor: Added AddIndex() method to entity set, to enable adding indexes to map reduce results/named collections
 	* Tested with MongoCSharpDriver 1.10.0
 
+2.3.0:
+	* MongoDb adaptor: DbIgnore now works with inheritance
+	* Redis adaptor: DbIgnore now works with inheritance
+
 Upcoming features:
 Service layer including modify date, state, upsert, roles, rest (odata) queries and more

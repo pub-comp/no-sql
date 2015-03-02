@@ -2,8 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Reflection;
 using PubComp.NoSql.Core;
 
@@ -117,9 +115,11 @@ namespace PubComp.NoSql.ServiceStackRedis
 
             static EntitySet()
             {
-                var ignoreProperties = new List<string>();
+                var ignoreProperties = new List<PropertyInfo>();
 
-                foreach (var prop in typeof(TEntity).GetProperties())
+                var properties = ContextUtils.GetProperiesOfTypeAndSubTypes(typeof(TEntity));
+
+                foreach (var prop in properties)
                 {
                     if (prop.Name == "Id" || !prop.CanRead || !prop.CanWrite || prop.GetIndexParameters().Any())
                         continue;
@@ -127,11 +127,40 @@ namespace PubComp.NoSql.ServiceStackRedis
                     if (prop.GetCustomAttributes(typeof(DbIgnoreAttribute), true).Any()
                         || prop.GetCustomAttributes(typeof(NavigationAttribute), true).Any())
                     {
-                        ignoreProperties.Add(prop.Name);
+                        ignoreProperties.Add(prop);
                     }
                 }
 
-                ServiceStack.Text.JsConfig<TEntity>.ExcludePropertyNames = ignoreProperties.ToArray();
+                var propsPerGroups = ignoreProperties.GroupBy(p => p.DeclaringType).ToList();
+
+                var types = new List<Type> { typeof(TEntity) };
+                var subTypes = ContextUtils.FindInheritingTypes(typeof(TEntity).Assembly, new[] { typeof(TEntity) });
+                types.AddRange(subTypes);
+
+                foreach (var type in types)
+                {
+                    var currentType = type;
+                    var propNames = propsPerGroups.Where(g =>
+                        g.Key == currentType || currentType.IsSubclassOf(g.Key))
+                        .SelectMany(g => g).Select(p => p.Name).ToArray();
+
+                    if (propNames.Any())
+                        SetExcludePropertyNames(type, propNames);
+                }
+            }
+
+            private static void SetExcludePropertyNames(Type type, string[] propertyNames)
+            {
+                var genericMethod = typeof(EntitySet<TKey, TEntity>).GetMethod("SetExcludePropertyNamesGeneric",
+                    BindingFlags.NonPublic | BindingFlags.Static);
+
+                var specificMethod = genericMethod.MakeGenericMethod(type);
+                specificMethod.Invoke(null, new object[] { propertyNames });
+            }
+
+            private static void SetExcludePropertyNamesGeneric<T>(string[] propertyNames)
+            {
+                ServiceStack.Text.JsConfig<T>.ExcludePropertyNames = propertyNames;
             }
 
             internal EntitySet(RedisContext parent)

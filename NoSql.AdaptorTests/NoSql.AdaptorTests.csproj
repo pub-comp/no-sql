@@ -87,7 +87,8 @@
     <Compile Include="MocksForAccessTest\Status.cs" />
     <Compile Include="Mock\EntityForCalc.cs" />
     <Compile Include="Mock\EntityForUpdates.cs" />
-    <Compile Include="Mock\EntityWithAdditionalData.cs" />
+    <Compile Include="Mock\InhertianceEntityWithIgnoredData.cs" />
+    <Compile Include="Mock\EntityWithIgnoredData.cs" />
     <Compile Include="Mock\EntityWithGuid.cs" />
     <Compile Include="Mock\EntityWithInt.cs" />
     <Compile Include="Mock\EntityWithNavigation.cs" />

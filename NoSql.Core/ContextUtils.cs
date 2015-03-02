@@ -178,5 +178,17 @@ namespace PubComp.NoSql.Core
 
             return suitableTypes.ToArray();
         }
+
+        public static IEnumerable<PropertyInfo> GetProperiesOfTypeAndSubTypes(Type type)
+        {
+            var properties = type.GetProperties().ToList();
+
+            var subTypes = type.Assembly.GetTypes().Where(t => t.IsSubclassOf(type));
+            var subProperties = subTypes.SelectMany(t =>
+                t.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly));
+
+            properties.AddRange(subProperties);
+            return properties;
+        }
     }
 }

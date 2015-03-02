@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using PubComp.NoSql.Core;
 
 namespace PubComp.NoSql.AdaptorTests.Mock
@@ -13,12 +9,13 @@ namespace PubComp.NoSql.AdaptorTests.Mock
         IEntitySet<int, EntityWithInt> EntitiesWithInt { get; }
         IEntitySet<String, EntityWithString> EntitiesWithString { get; }
         IEntitySet<Guid, MultiIDEntity> MultiIDEntities { get; }
-        IEntitySet<Guid, EntityWithAdditionalData> EntitiesWithAdditionalData { get; }
         IEntitySet<Guid, EntityWithNavigation> EntitiesWithNavigation { get; }
         IEntitySet<Guid, InfoBase> Infos { get; }
         IEntitySet<Guid, Tag> Tags { get; }
         IEntitySet<Guid, EntityForCalc> EntitiesForCalc { get; }
         IEntitySet<Guid, EntityForUpdates> EntitiesForUpdates { get; }
+        IEntitySet<Guid, EntityWithIgnoredData> EntityWithIgnoredData { get; }
+        IEntitySet<Guid, InhertianceEntityWithIgnoredData> InhertianceEntityWithIgnoredData { get; }
 
         new IFileSet<Guid> Files { get; }
     }
