@@ -38,14 +38,14 @@ namespace PubComp.NoSql.AdaptorTests
 
         private void DeleteAll()
         {
-            using (var uow = getMockContext())
+            using (var context = getMockContext())
             {
-                deleteMockContext(uow);
+                deleteMockContext(context);
             }
 
-            using (var uow = getMockContextForAccessTests(Status.Private, Status.Private, Status.Private))
+            using (var context = getMockContextForAccessTests(Status.Private, Status.Private, Status.Private))
             {
-                deleteMockContextForAccessTests(uow);
+                deleteMockContextForAccessTests(context);
             }
         }
 
@@ -61,9 +61,9 @@ namespace PubComp.NoSql.AdaptorTests
         {
             var id = Guid.NewGuid();
 
-            using (var uow = getMockContext())
+            using (var context = getMockContext())
             {
-                var set = uow.EntitiesForUpdates;
+                var set = context.EntitiesForUpdates;
 
                 var o1 = new EntityForUpdates
                 {
@@ -81,9 +81,9 @@ namespace PubComp.NoSql.AdaptorTests
                 set.Add(o1);
             }
 
-            using (var uow = getMockContext())
+            using (var context = getMockContext())
             {
-                var set = uow.EntitiesForUpdates;
+                var set = context.EntitiesForUpdates;
 
                 var o2 = set.Get(id);
 
@@ -99,9 +99,9 @@ namespace PubComp.NoSql.AdaptorTests
         {
             var id = Guid.NewGuid();
 
-            using (var uow = getMockContext())
+            using (var context = getMockContext())
             {
-                var set = uow.EntitiesForUpdates;
+                var set = context.EntitiesForUpdates;
 
                 var o1 = new EntityForUpdates
                 {
@@ -119,9 +119,9 @@ namespace PubComp.NoSql.AdaptorTests
                 set.Add(o1);
             }
 
-            using (var uow = getMockContext())
+            using (var context = getMockContext())
             {
-                var set = uow.EntitiesForUpdates;
+                var set = context.EntitiesForUpdates;
 
                 var o2 = new EntityForUpdates
                 {
@@ -143,9 +143,9 @@ namespace PubComp.NoSql.AdaptorTests
                 set.Update(o2);
             }
 
-            using (var uow = getMockContext())
+            using (var context = getMockContext())
             {
-                var set = uow.EntitiesForUpdates;
+                var set = context.EntitiesForUpdates;
 
                 var o3 = set.Get(id);
 
@@ -162,9 +162,9 @@ namespace PubComp.NoSql.AdaptorTests
         {
             var id = Guid.NewGuid();
 
-            using (var uow = getMockContext())
+            using (var context = getMockContext())
             {
-                var set = uow.EntitiesWithGuid;
+                var set = context.EntitiesWithGuid;
 
                 var o1 = new EntityWithGuid
                 {
@@ -175,16 +175,16 @@ namespace PubComp.NoSql.AdaptorTests
                 set.Add(o1);
             }
 
-            using (var uow = getMockContext())
+            using (var context = getMockContext())
             {
-                var set = uow.EntitiesWithGuid;
+                var set = context.EntitiesWithGuid;
 
                 set.Delete(id);
             }
 
-            using (var uow = getMockContext())
+            using (var context = getMockContext())
             {
-                var set = uow.EntitiesWithGuid;
+                var set = context.EntitiesWithGuid;
 
                 var o3 = set.Get(id);
 
@@ -199,9 +199,9 @@ namespace PubComp.NoSql.AdaptorTests
 
             EntityWithGuid o1;
 
-            using (var uow = getMockContext())
+            using (var context = getMockContext())
             {
-                var set = uow.EntitiesWithGuid;
+                var set = context.EntitiesWithGuid;
 
                 o1 = new EntityWithGuid
                 {
@@ -212,16 +212,16 @@ namespace PubComp.NoSql.AdaptorTests
                 set.Add(o1);
             }
 
-            using (var uow = getMockContext())
+            using (var context = getMockContext())
             {
-                var set = uow.EntitiesWithGuid;
+                var set = context.EntitiesWithGuid;
 
                 set.Delete(o1);
             }
 
-            using (var uow = getMockContext())
+            using (var context = getMockContext())
             {
-                var set = uow.EntitiesWithGuid;
+                var set = context.EntitiesWithGuid;
 
                 var o3 = set.Get(id);
 
@@ -234,9 +234,9 @@ namespace PubComp.NoSql.AdaptorTests
         {
             var id = Guid.NewGuid();
 
-            using (var uow = getMockContext())
+            using (var context = getMockContext())
             {
-                var set = uow.EntitiesWithGuid;
+                var set = context.EntitiesWithGuid;
 
                 var o1 = new EntityWithGuid
                 {
@@ -247,9 +247,9 @@ namespace PubComp.NoSql.AdaptorTests
                 set.Add(o1);
             }
 
-            using (var uow = getMockContext())
+            using (var context = getMockContext())
             {
-                var set = uow.EntitiesWithGuid;
+                var set = context.EntitiesWithGuid;
 
                 var o2 = new EntityWithGuid
                 {
@@ -261,9 +261,9 @@ namespace PubComp.NoSql.AdaptorTests
                 Assert.IsFalse(added);
             }
 
-            using (var uow = getMockContext())
+            using (var context = getMockContext())
             {
-                var set = uow.EntitiesWithGuid;
+                var set = context.EntitiesWithGuid;
 
                 var o3 = set.Get(id);
 
@@ -276,9 +276,9 @@ namespace PubComp.NoSql.AdaptorTests
         {
             var id = Guid.NewGuid();
 
-            using (var uow = getMockContext())
+            using (var context = getMockContext())
             {
-                var set = uow.EntitiesWithGuid;
+                var set = context.EntitiesWithGuid;
 
                 var o2 = new EntityWithGuid
                 {
@@ -290,9 +290,9 @@ namespace PubComp.NoSql.AdaptorTests
                 Assert.IsTrue(added);
             }
 
-            using (var uow = getMockContext())
+            using (var context = getMockContext())
             {
-                var set = uow.EntitiesWithGuid;
+                var set = context.EntitiesWithGuid;
 
                 var o3 = set.Get(id);
 
@@ -305,9 +305,9 @@ namespace PubComp.NoSql.AdaptorTests
         {
             var id = Guid.NewGuid();
 
-            using (var uow = getMockContext())
+            using (var context = getMockContext())
             {
-                var set = uow.EntitiesWithGuid;
+                var set = context.EntitiesWithGuid;
 
                 var o1 = new EntityWithGuid
                 {
@@ -318,9 +318,9 @@ namespace PubComp.NoSql.AdaptorTests
                 set.Add(o1);
             }
 
-            using (var uow = getMockContext())
+            using (var context = getMockContext())
             {
-                var set = uow.EntitiesWithGuid;
+                var set = context.EntitiesWithGuid;
 
                 var o2 = new EntityWithGuid
                 {
@@ -331,9 +331,9 @@ namespace PubComp.NoSql.AdaptorTests
                 set.AddOrUpdate(o2);
             }
 
-            using (var uow = getMockContext())
+            using (var context = getMockContext())
             {
-                var set = uow.EntitiesWithGuid;
+                var set = context.EntitiesWithGuid;
 
                 var o3 = set.Get(id);
 
@@ -346,9 +346,9 @@ namespace PubComp.NoSql.AdaptorTests
         {
             var id = Guid.NewGuid();
 
-            using (var uow = getMockContext())
+            using (var context = getMockContext())
             {
-                var set = uow.EntitiesWithGuid;
+                var set = context.EntitiesWithGuid;
 
                 var o2 = new EntityWithGuid
                 {
@@ -359,13 +359,186 @@ namespace PubComp.NoSql.AdaptorTests
                 set.AddOrUpdate(o2);
             }
 
-            using (var uow = getMockContext())
+            using (var context = getMockContext())
             {
-                var set = uow.EntitiesWithGuid;
+                var set = context.EntitiesWithGuid;
 
                 var o3 = set.Get(id);
 
                 Assert.AreEqual("o2", o3.Name);
+            }
+        }
+
+        [TestMethod]
+        public void DateOnlyTest()
+        {
+            var id = Guid.NewGuid();
+
+            using (var context = getMockContext())
+            {
+                var set = context.Dates;
+
+                var o1 = new Dates
+                {
+                    Id = id,
+                    Date1 = new DateTime(2005, 10, 20),
+                };
+
+                set.AddOrUpdate(o1);
+            }
+
+            using (var context = getMockContext())
+            {
+                var set = context.Dates;
+
+                var o2 = set.Get(id);
+
+                Assert.AreEqual(new DateTime(2005, 10, 20), o2.Date1);
+            }
+        }
+
+        [TestMethod]
+        public void DateTimeTest()
+        {
+            var id = Guid.NewGuid();
+
+            using (var context = getMockContext())
+            {
+                var set = context.Dates;
+
+                var o1 = new Dates
+                {
+                    Id = id,
+                    Date2 = new DateTime(2002, 04, 08, 16, 32, 04, 128),
+                };
+
+                set.AddOrUpdate(o1);
+            }
+
+            using (var context = getMockContext())
+            {
+                var set = context.Dates;
+
+                var o2 = set.Get(id);
+
+                Assert.AreEqual(new DateTime(2002, 04, 08, 16, 32, 04, 128), o2.Date2);
+            }
+        }
+
+        [TestMethod]
+        public void DateOnlyNullableTest()
+        {
+            var id = Guid.NewGuid();
+
+            using (var context = getMockContext())
+            {
+                var set = context.Dates;
+
+                var o1 = new Dates
+                {
+                    Id = id,
+                    Date3 = new DateTime(2005, 10, 20),
+                };
+
+                set.AddOrUpdate(o1);
+            }
+
+            using (var context = getMockContext())
+            {
+                var set = context.Dates;
+
+                var o2 = set.Get(id);
+
+                Assert.AreEqual(new DateTime(2005, 10, 20), o2.Date3);
+            }
+        }
+
+        [TestMethod]
+        public void DateTimeNullableTest()
+        {
+            var id = Guid.NewGuid();
+
+            using (var context = getMockContext())
+            {
+                var set = context.Dates;
+
+                var o1 = new Dates
+                {
+                    Id = id,
+                    Date4 = new DateTime(2002, 04, 08, 16, 32, 04, 128),
+                };
+
+                set.AddOrUpdate(o1);
+            }
+
+            using (var context = getMockContext())
+            {
+                var set = context.Dates;
+
+                var o2 = set.Get(id);
+
+                Assert.AreEqual(new DateTime(2002, 04, 08, 16, 32, 04, 128), o2.Date4);
+            }
+        }
+
+        [TestMethod]
+        public void DateTimeQueryTest()
+        {
+            var id = Guid.NewGuid();
+            var date1 = new DateTime(2002, 04, 08, 16, 32, 04, 127);
+            var date2 = new DateTime(2002, 04, 08, 16, 32, 04, 128);
+            var date3 = new DateTime(2002, 04, 08, 16, 32, 04, 129);
+
+            using (var context = getMockContext())
+            {
+                var set = context.Dates;
+
+                var o1 = new Dates
+                {
+                    Id = id,
+                    Date2 = date2,
+                };
+
+                set.AddOrUpdate(o1);
+            }
+
+            using (var context = getMockContext())
+            {
+                var dates = context.Dates.AsQueryable().Where(d => d.Date2 > date1 && d.Date2 < date3).ToList();
+                Assert.AreEqual(1, dates.Count);
+                Assert.AreEqual(id, dates[0].Id);
+                Assert.AreEqual(date2, dates[0].Date2);
+            }
+        }
+
+        [TestMethod]
+        public void DateTimeNullableQueryTest()
+        {
+            var id = Guid.NewGuid();
+            var date1 = new DateTime(2002, 04, 08, 16, 32, 04, 127);
+            var date2 = new DateTime(2002, 04, 08, 16, 32, 04, 128);
+            var date3 = new DateTime(2002, 04, 08, 16, 32, 04, 129);
+
+            using (var context = getMockContext())
+            {
+                var set = context.Dates;
+
+                var o1 = new Dates
+                {
+                    Id = id,
+                    Date4 = date2,
+                };
+
+                set.AddOrUpdate(o1);
+            }
+
+            using (var context = getMockContext())
+            {
+                var dates = context.Dates.AsQueryable().Where(d => d.Date4 != null && d.Date4 > date1 && d.Date4 < date3).ToList();
+                Assert.AreEqual(1, dates.Count);
+                Assert.AreEqual(id, dates[0].Id);
+                Assert.AreEqual(true, dates[0].Date4.HasValue);
+                Assert.AreEqual(date2, dates[0].Date4.Value);
             }
         }
 
@@ -380,9 +553,9 @@ namespace PubComp.NoSql.AdaptorTests
             var id2 = new Guid("{4D50A826-9F0A-473F-8B16-E2CA2F71431E}");
             var id3 = new Guid("{87FBB4F8-9699-465B-94A5-A94324693B72}");
 
-            using (var uow = getMockContext())
+            using (var context = getMockContext())
             {
-                Assert.AreEqual(0, uow.MultiIDEntities.AsQueryable().Count());
+                Assert.AreEqual(0, context.MultiIDEntities.AsQueryable().Count());
 
                 var item = new MultiIDEntity
                 {
@@ -392,11 +565,11 @@ namespace PubComp.NoSql.AdaptorTests
                     Flags = MyFlags.One,
                 };
 
-                var existing = uow.MultiIDEntities.GetOrAdd(item);
+                var existing = context.MultiIDEntities.GetOrAdd(item);
                 Assert.IsNull(existing);
             }
 
-            using (var uow = getMockContext())
+            using (var context = getMockContext())
             {
                 var item = new MultiIDEntity
                 {
@@ -404,14 +577,14 @@ namespace PubComp.NoSql.AdaptorTests
                     Flags = MyFlags.Two,
                 };
 
-                var existing = uow.MultiIDEntities.GetOrAdd(item);
+                var existing = context.MultiIDEntities.GetOrAdd(item);
                 Assert.IsNotNull(existing);
                 Assert.AreEqual(MyFlags.One, existing.Flags);
             }
 
-            using (var uow = getMockContext())
+            using (var context = getMockContext())
             {
-                var item = uow.MultiIDEntities.Get(id1);
+                var item = context.MultiIDEntities.Get(id1);
                 Assert.IsNotNull(item);
 
                 Assert.AreEqual(MyFlags.One, item.Flags);
@@ -425,9 +598,9 @@ namespace PubComp.NoSql.AdaptorTests
             var id2 = new Guid("{4D50A826-9F0A-473F-8B16-E2CA2F71431E}");
             var id3 = new Guid("{87FBB4F8-9699-465B-94A5-A94324693B72}");
 
-            using (var uow = getMockContext())
+            using (var context = getMockContext())
             {
-                Assert.AreEqual(0, uow.MultiIDEntities.AsQueryable().Count());
+                Assert.AreEqual(0, context.MultiIDEntities.AsQueryable().Count());
 
                 var item = new MultiIDEntity
                 {
@@ -437,10 +610,10 @@ namespace PubComp.NoSql.AdaptorTests
                     Flags = MyFlags.One,
                 };
 
-                Assert.IsTrue(uow.MultiIDEntities.AddIfNotExists(item));
+                Assert.IsTrue(context.MultiIDEntities.AddIfNotExists(item));
             }
 
-            using (var uow = getMockContext())
+            using (var context = getMockContext())
             {
                 var item = new MultiIDEntity
                 {
@@ -448,12 +621,12 @@ namespace PubComp.NoSql.AdaptorTests
                     Flags = MyFlags.Two,
                 };
 
-                Assert.IsFalse(uow.MultiIDEntities.AddIfNotExists(item));
+                Assert.IsFalse(context.MultiIDEntities.AddIfNotExists(item));
             }
 
-            using (var uow = getMockContext())
+            using (var context = getMockContext())
             {
-                var item = uow.MultiIDEntities.Get(id1);
+                var item = context.MultiIDEntities.Get(id1);
                 Assert.IsNotNull(item);
 
                 Assert.AreEqual(MyFlags.One, item.Flags);
@@ -467,9 +640,9 @@ namespace PubComp.NoSql.AdaptorTests
             var id2 = new Guid("{4D50A826-9F0A-473F-8B16-E2CA2F71431E}");
             var id3 = new Guid("{87FBB4F8-9699-465B-94A5-A94324693B72}");
 
-            using (var uow = getMockContext())
+            using (var context = getMockContext())
             {
-                Assert.AreEqual(0, uow.MultiIDEntities.AsQueryable().Count());
+                Assert.AreEqual(0, context.MultiIDEntities.AsQueryable().Count());
 
                 var item = new MultiIDEntity
                 {
@@ -479,11 +652,11 @@ namespace PubComp.NoSql.AdaptorTests
                     Flags = MyFlags.One,
                 };
 
-                var existing = uow.MultiIDEntities.GetOrAdd(item);
+                var existing = context.MultiIDEntities.GetOrAdd(item);
                 Assert.IsNull(existing);
             }
 
-            using (var uow = getMockContext())
+            using (var context = getMockContext())
             {
                 var item = new MultiIDEntity
                 {
@@ -491,12 +664,12 @@ namespace PubComp.NoSql.AdaptorTests
                     Flags = MyFlags.Two,
                 };
 
-                uow.MultiIDEntities.AddOrUpdate(item);
+                context.MultiIDEntities.AddOrUpdate(item);
             }
 
-            using (var uow = getMockContext())
+            using (var context = getMockContext())
             {
-                var item = uow.MultiIDEntities.Get(id1);
+                var item = context.MultiIDEntities.Get(id1);
                 Assert.IsNotNull(item);
 
                 Assert.AreEqual(MyFlags.Two, item.Flags);
@@ -510,9 +683,9 @@ namespace PubComp.NoSql.AdaptorTests
             var id2 = new Guid("{4D50A826-9F0A-473F-8B16-E2CA2F71431E}");
             var id3 = new Guid("{87FBB4F8-9699-465B-94A5-A94324693B72}");
 
-            using (var uow = getMockContext())
+            using (var context = getMockContext())
             {
-                Assert.AreEqual(0, uow.MultiIDEntities.AsQueryable().Count());
+                Assert.AreEqual(0, context.MultiIDEntities.AsQueryable().Count());
 
                 var item = new MultiIDEntity
                 {
@@ -522,22 +695,22 @@ namespace PubComp.NoSql.AdaptorTests
                     Flags = MyFlags.None,
                 };
 
-                uow.MultiIDEntities.Add(item);
+                context.MultiIDEntities.Add(item);
             }
 
-            using (var uow = getMockContext())
+            using (var context = getMockContext())
             {
-                var item = uow.MultiIDEntities.AsQueryable().Where(e => e.Item1Id == id2 && e.Item2Id == id3).SingleOrDefault();
+                var item = context.MultiIDEntities.AsQueryable().Where(e => e.Item1Id == id2 && e.Item2Id == id3).SingleOrDefault();
                 Assert.IsNotNull(item);
 
                 item.Flags |= MyFlags.One;
 
-                uow.MultiIDEntities.Update(item);
+                context.MultiIDEntities.Update(item);
             }
 
-            using (var uow = getMockContext())
+            using (var context = getMockContext())
             {
-                var item = uow.MultiIDEntities.Get(id1);
+                var item = context.MultiIDEntities.Get(id1);
                 Assert.IsNotNull(item);
 
                 Assert.AreEqual(MyFlags.One, item.Flags);
@@ -555,9 +728,9 @@ namespace PubComp.NoSql.AdaptorTests
             var id2 = new Guid("{4D50A826-9F0A-473F-8B16-E2CA2F71431E}");
             var id3 = new Guid("{87FBB4F8-9699-465B-94A5-A94324693B72}");
 
-            using (var uow = getMockContext())
+            using (var context = getMockContext())
             {
-                Assert.AreEqual(0, uow.EntitiesWithGuid.AsQueryable().Count());
+                Assert.AreEqual(0, context.EntitiesWithGuid.AsQueryable().Count());
 
                 var aaaa = new EntityWithGuid
                 {
@@ -577,23 +750,23 @@ namespace PubComp.NoSql.AdaptorTests
                     Name = "cccc",
                 };
 
-                uow.EntitiesWithGuid.Add(new[] { aaaa, bbbb, cccc });
+                context.EntitiesWithGuid.Add(new[] { aaaa, bbbb, cccc });
             }
 
-            using (var uow = getMockContext())
+            using (var context = getMockContext())
             {
-                Assert.AreEqual(3, uow.EntitiesWithGuid.AsQueryable().Count());
+                Assert.AreEqual(3, context.EntitiesWithGuid.AsQueryable().Count());
 
-                var result = uow.EntitiesWithGuid.Get(id2);
+                var result = context.EntitiesWithGuid.Get(id2);
 
                 Assert.AreEqual("bbbb", result.Name);
 
-                Assert.IsTrue(uow.EntitiesWithGuid.Contains(id1));
-                Assert.IsTrue(uow.EntitiesWithGuid.Contains(id2));
-                Assert.IsTrue(uow.EntitiesWithGuid.Contains(id3));
+                Assert.IsTrue(context.EntitiesWithGuid.Contains(id1));
+                Assert.IsTrue(context.EntitiesWithGuid.Contains(id2));
+                Assert.IsTrue(context.EntitiesWithGuid.Contains(id3));
 
-                uow.EntitiesWithGuid.Delete(new[] { id1, id2, id3 });
-                Assert.AreEqual(0, uow.EntitiesWithGuid.AsQueryable().Count());
+                context.EntitiesWithGuid.Delete(new[] { id1, id2, id3 });
+                Assert.AreEqual(0, context.EntitiesWithGuid.AsQueryable().Count());
             }
         }
 
@@ -604,9 +777,9 @@ namespace PubComp.NoSql.AdaptorTests
             var id2 = 3;
             var id3 = 7;
 
-            using (var uow = getMockContext())
+            using (var context = getMockContext())
             {
-                Assert.AreEqual(0, uow.EntitiesWithInt.AsQueryable().Count());
+                Assert.AreEqual(0, context.EntitiesWithInt.AsQueryable().Count());
 
                 var aaaa = new EntityWithInt
                 {
@@ -626,23 +799,23 @@ namespace PubComp.NoSql.AdaptorTests
                     Name = "cccc",
                 };
 
-                uow.EntitiesWithInt.Add(new[] { aaaa, bbbb, cccc });
+                context.EntitiesWithInt.Add(new[] { aaaa, bbbb, cccc });
             }
 
-            using (var uow = getMockContext())
+            using (var context = getMockContext())
             {
-                Assert.AreEqual(3, uow.EntitiesWithInt.AsQueryable().Count());
+                Assert.AreEqual(3, context.EntitiesWithInt.AsQueryable().Count());
 
-                var result = uow.EntitiesWithInt.Get(id2);
+                var result = context.EntitiesWithInt.Get(id2);
 
                 Assert.AreEqual("bbbb", result.Name);
 
-                Assert.IsTrue(uow.EntitiesWithInt.Contains(id1));
-                Assert.IsTrue(uow.EntitiesWithInt.Contains(id2));
-                Assert.IsTrue(uow.EntitiesWithInt.Contains(id3));
+                Assert.IsTrue(context.EntitiesWithInt.Contains(id1));
+                Assert.IsTrue(context.EntitiesWithInt.Contains(id2));
+                Assert.IsTrue(context.EntitiesWithInt.Contains(id3));
 
-                uow.EntitiesWithInt.Delete(new[] { id1, id2, id3 });
-                Assert.AreEqual(0, uow.EntitiesWithInt.AsQueryable().Count());
+                context.EntitiesWithInt.Delete(new[] { id1, id2, id3 });
+                Assert.AreEqual(0, context.EntitiesWithInt.AsQueryable().Count());
             }
         }
 
@@ -653,9 +826,9 @@ namespace PubComp.NoSql.AdaptorTests
             var id2 = "bbbbbbbbbbbbbbbbb";
             var id3 = "xxxxxxxxxxxxxxxxxxxxxxx";
 
-            using (var uow = getMockContext())
+            using (var context = getMockContext())
             {
-                Assert.AreEqual(0, uow.EntitiesWithString.AsQueryable().Count());
+                Assert.AreEqual(0, context.EntitiesWithString.AsQueryable().Count());
 
                 var aaaa = new EntityWithString
                 {
@@ -675,23 +848,23 @@ namespace PubComp.NoSql.AdaptorTests
                     Name = "cccc",
                 };
 
-                uow.EntitiesWithString.Add(new[] { aaaa, bbbb, cccc });
+                context.EntitiesWithString.Add(new[] { aaaa, bbbb, cccc });
             }
 
-            using (var uow = getMockContext())
+            using (var context = getMockContext())
             {
-                Assert.AreEqual(3, uow.EntitiesWithString.AsQueryable().Count());
+                Assert.AreEqual(3, context.EntitiesWithString.AsQueryable().Count());
 
-                var result = uow.EntitiesWithString.Get(id2);
+                var result = context.EntitiesWithString.Get(id2);
 
                 Assert.AreEqual("bbbb", result.Name);
 
-                Assert.IsTrue(uow.EntitiesWithString.Contains(id1));
-                Assert.IsTrue(uow.EntitiesWithString.Contains(id2));
-                Assert.IsTrue(uow.EntitiesWithString.Contains(id3));
+                Assert.IsTrue(context.EntitiesWithString.Contains(id1));
+                Assert.IsTrue(context.EntitiesWithString.Contains(id2));
+                Assert.IsTrue(context.EntitiesWithString.Contains(id3));
 
-                uow.EntitiesWithString.Delete(new[] { id1, id2, id3 });
-                Assert.AreEqual(0, uow.EntitiesWithString.AsQueryable().Count());
+                context.EntitiesWithString.Delete(new[] { id1, id2, id3 });
+                Assert.AreEqual(0, context.EntitiesWithString.AsQueryable().Count());
             }
         }
 
@@ -706,9 +879,9 @@ namespace PubComp.NoSql.AdaptorTests
             var id2 = new Guid("{4D50A826-9F0A-473F-8B16-E2CA2F71431E}");
             var id3 = new Guid("{87FBB4F8-9699-465B-94A5-A94324693B72}");
 
-            using (var uow = getMockContext())
+            using (var context = getMockContext())
             {
-                Assert.AreEqual(0, uow.EntitiesWithGuid.AsQueryable().Count());
+                Assert.AreEqual(0, context.EntitiesWithGuid.AsQueryable().Count());
 
                 var aaaa = new EntityWithGuid
                 {
@@ -730,25 +903,25 @@ namespace PubComp.NoSql.AdaptorTests
                     Prop2 = "2222",
                 };
 
-                uow.EntitiesWithGuid.Add(new[] { aaaa, bbbb, cccc });
+                context.EntitiesWithGuid.Add(new[] { aaaa, bbbb, cccc });
             }
 
-            using (var uow = getMockContext())
+            using (var context = getMockContext())
             {
-                Assert.AreEqual(3, uow.EntitiesWithGuid.AsQueryable().Count());
+                Assert.AreEqual(3, context.EntitiesWithGuid.AsQueryable().Count());
 
-                var result = uow.EntitiesWithGuid.Get(id2);
+                var result = context.EntitiesWithGuid.Get(id2);
 
                 Assert.AreEqual("bbbb", result.Name);
 
-                Assert.IsTrue(uow.EntitiesWithGuid.Contains(id1));
-                Assert.IsTrue(uow.EntitiesWithGuid.Contains(id2));
-                Assert.IsTrue(uow.EntitiesWithGuid.Contains(id3));
+                Assert.IsTrue(context.EntitiesWithGuid.Contains(id1));
+                Assert.IsTrue(context.EntitiesWithGuid.Contains(id2));
+                Assert.IsTrue(context.EntitiesWithGuid.Contains(id3));
 
-                uow.EntitiesWithGuid.Delete(id1);
-                uow.EntitiesWithGuid.Delete(id2);
-                uow.EntitiesWithGuid.Delete(id3);
-                Assert.AreEqual(0, uow.EntitiesWithString.AsQueryable().Count());
+                context.EntitiesWithGuid.Delete(id1);
+                context.EntitiesWithGuid.Delete(id2);
+                context.EntitiesWithGuid.Delete(id3);
+                Assert.AreEqual(0, context.EntitiesWithString.AsQueryable().Count());
             }
         }
 
@@ -761,9 +934,9 @@ namespace PubComp.NoSql.AdaptorTests
         {
             var id1 = new Guid("{A8EA2462-B641-40AE-A4AC-AF8373DF9B75}");
 
-            using (var uow = getMockContext())
+            using (var context = getMockContext())
             {
-                Assert.AreEqual(0, uow.EntityWithIgnoredData.AsQueryable().Count());
+                Assert.AreEqual(0, context.EntityWithIgnoredData.AsQueryable().Count());
 
                 var item = new Mock.EntityWithIgnoredData
                 {
@@ -774,12 +947,12 @@ namespace PubComp.NoSql.AdaptorTests
                     IgnoreThisStruct = new InnerStruct { Field = 2 },
                 };
 
-                uow.EntityWithIgnoredData.Add(item);
+                context.EntityWithIgnoredData.Add(item);
             }
 
-            using (var uow = getMockContext())
+            using (var context = getMockContext())
             {
-                var item = uow.EntityWithIgnoredData.Get(id1);
+                var item = context.EntityWithIgnoredData.Get(id1);
                 Assert.AreEqual("xxx", item.Name);
                 Assert.AreEqual(null, item.IgnoreThisObject);
                 Assert.AreEqual(default(InnerStruct), item.IgnoreThisStruct);
@@ -791,9 +964,9 @@ namespace PubComp.NoSql.AdaptorTests
         {
             var id1 = new Guid("{05144A99-A6A0-4D87-BB36-2CE0A91331DA}");
 
-            using (var uow = getMockContext())
+            using (var context = getMockContext())
             {
-                Assert.AreEqual(0, uow.InhertianceEntityWithIgnoredData.AsQueryable().Count());
+                Assert.AreEqual(0, context.InhertianceEntityWithIgnoredData.AsQueryable().Count());
 
                 var item = new Mock.InhertianceEntityWithIgnoredDataChild
                 {
@@ -805,12 +978,12 @@ namespace PubComp.NoSql.AdaptorTests
                     IgnoreThisStruct = new InnerStruct { Field = 2 },
                 };
 
-                uow.InhertianceEntityWithIgnoredData.Add(item);
+                context.InhertianceEntityWithIgnoredData.Add(item);
             }
 
-            using (var uow = getMockContext())
+            using (var context = getMockContext())
             {
-                var item = uow.InhertianceEntityWithIgnoredData.Get(id1) as InhertianceEntityWithIgnoredDataChild;
+                var item = context.InhertianceEntityWithIgnoredData.Get(id1) as InhertianceEntityWithIgnoredDataChild;
                 Assert.AreEqual("xxx", item.Name);
                 Assert.AreEqual(null, item.IgnoreThisParentString);
                 Assert.AreEqual(null, item.IgnoreThisString);
@@ -827,9 +1000,9 @@ namespace PubComp.NoSql.AdaptorTests
             var id3 = new Guid("{3AC03C43-8C89-4870-A4B0-F21F7459E1D0}");
             var id4 = new Guid("{A284498A-2F05-4449-8E91-9D471B598C9C}");
 
-            using (var uow = getMockContext())
+            using (var context = getMockContext())
             {
-                Assert.AreEqual(0, uow.EntitiesWithNavigation.AsQueryable().Count());
+                Assert.AreEqual(0, context.EntitiesWithNavigation.AsQueryable().Count());
 
                 var info = new Mock.Info
                 {
@@ -857,20 +1030,20 @@ namespace PubComp.NoSql.AdaptorTests
                     Tags = new List<Tag> { tag1, tag2 },
                 };
 
-                uow.EntitiesWithNavigation.Add(item);
-                uow.EntitiesWithNavigation.SaveNavigation(new[] { item }, new[] { "Info", "Tags" });
+                context.EntitiesWithNavigation.Add(item);
+                context.EntitiesWithNavigation.SaveNavigation(new[] { item }, new[] { "Info", "Tags" });
             }
 
-            using (var uow = getMockContext())
+            using (var context = getMockContext())
             {
-                var item = uow.EntitiesWithNavigation.Get(id4);
+                var item = context.EntitiesWithNavigation.Get(id4);
                 Assert.AreEqual("xxx", item.Name);
                 Assert.AreNotEqual(Guid.Empty, item.InfoId);
                 Assert.IsNull(item.Info);
                 Assert.IsTrue(item.TagIds != null && item.TagIds.Count() == 2);
                 Assert.IsTrue(item.Tags == null || !item.Tags.Any());
 
-                uow.EntitiesWithNavigation.LoadNavigation(new[] { item }, new[] { "Info", "Tags" });
+                context.EntitiesWithNavigation.LoadNavigation(new[] { item }, new[] { "Info", "Tags" });
                 Assert.AreNotEqual(Guid.Empty, item.InfoId);
                 Assert.IsNotNull(item.Info);
                 Assert.IsTrue(item.TagIds != null && item.TagIds.Count() == 2);
@@ -887,17 +1060,17 @@ namespace PubComp.NoSql.AdaptorTests
         {
             var id1 = new Guid("{B09F4B8E-1853-4C01-84D8-57C87A1F7F31}");
 
-            using (var uow = getMockContext())
+            using (var context = getMockContext())
             {
                 int modifyCount = 0;
                 int deleteCount = 0;
                 int getCount = 0;
 
-                uow.EntitiesWithGuid.OnModifying += (obj, e) => modifyCount++;
-                uow.EntitiesWithGuid.OnDeleting += (obj, e) => deleteCount++;
-                uow.EntitiesWithGuid.OnGetting += (obj, e) => getCount++;
+                context.EntitiesWithGuid.OnModifying += (obj, e) => modifyCount++;
+                context.EntitiesWithGuid.OnDeleting += (obj, e) => deleteCount++;
+                context.EntitiesWithGuid.OnGetting += (obj, e) => getCount++;
 
-                Assert.AreEqual(0, uow.EntitiesWithGuid.AsQueryable().Count());
+                Assert.AreEqual(0, context.EntitiesWithGuid.AsQueryable().Count());
 
                 var entity = new Mock.EntityWithGuid
                 {
@@ -905,13 +1078,13 @@ namespace PubComp.NoSql.AdaptorTests
                     Name = "access-test",
                 };
 
-                uow.EntitiesWithGuid.Add(entity);
+                context.EntitiesWithGuid.Add(entity);
 
                 Assert.AreEqual(1, modifyCount);
                 Assert.AreEqual(0, deleteCount);
                 Assert.AreEqual(0, getCount);
 
-                var item = uow.EntitiesWithGuid.Get(id1);
+                var item = context.EntitiesWithGuid.Get(id1);
                 Assert.AreEqual("access-test", item.Name);
 
                 Assert.AreEqual(1, modifyCount);
@@ -925,17 +1098,17 @@ namespace PubComp.NoSql.AdaptorTests
         {
             var id1 = new Guid("{B09F4B8E-1853-4C01-84D8-57C87A1F7F31}");
 
-            using (var uow = getMockContext())
+            using (var context = getMockContext())
             {
                 int modifyCount = 0;
                 int deleteCount = 0;
                 int getCount = 0;
 
-                uow.EntitiesWithGuid.OnModifying += (obj, e) => modifyCount++;
-                uow.EntitiesWithGuid.OnDeleting += (obj, e) => deleteCount++;
-                uow.EntitiesWithGuid.OnGetting += (obj, e) => getCount++;
+                context.EntitiesWithGuid.OnModifying += (obj, e) => modifyCount++;
+                context.EntitiesWithGuid.OnDeleting += (obj, e) => deleteCount++;
+                context.EntitiesWithGuid.OnGetting += (obj, e) => getCount++;
 
-                Assert.AreEqual(0, uow.EntitiesWithGuid.AsQueryable().Count());
+                Assert.AreEqual(0, context.EntitiesWithGuid.AsQueryable().Count());
 
                 var entity = new Mock.EntityWithGuid
                 {
@@ -943,20 +1116,20 @@ namespace PubComp.NoSql.AdaptorTests
                     Name = "access-test",
                 };
 
-                uow.EntitiesWithGuid.Add(entity);
+                context.EntitiesWithGuid.Add(entity);
 
                 Assert.AreEqual(1, modifyCount);
                 Assert.AreEqual(0, deleteCount);
                 Assert.AreEqual(0, getCount);
 
-                var item = uow.EntitiesWithGuid.Get(id1);
+                var item = context.EntitiesWithGuid.Get(id1);
                 Assert.AreEqual("access-test", item.Name);
 
                 Assert.AreEqual(1, modifyCount);
                 Assert.AreEqual(0, deleteCount);
                 Assert.AreEqual(1, getCount);
 
-                uow.EntitiesWithGuid.Delete(entity);
+                context.EntitiesWithGuid.Delete(entity);
 
                 Assert.AreEqual(1, modifyCount);
                 Assert.AreEqual(1, deleteCount);
@@ -969,17 +1142,17 @@ namespace PubComp.NoSql.AdaptorTests
         {
             var id1 = new Guid("{B09F4B8E-1853-4C01-84D8-57C87A1F7F31}");
 
-            using (var uow = getMockContext())
+            using (var context = getMockContext())
             {
                 int modifyCount = 0;
                 int deleteCount = 0;
                 int getCount = 0;
 
-                uow.EntitiesWithGuid.OnModifying += (obj, e) => modifyCount++;
-                uow.EntitiesWithGuid.OnDeleting += (obj, e) => deleteCount++;
-                uow.EntitiesWithGuid.OnGetting += (obj, e) => getCount++;
+                context.EntitiesWithGuid.OnModifying += (obj, e) => modifyCount++;
+                context.EntitiesWithGuid.OnDeleting += (obj, e) => deleteCount++;
+                context.EntitiesWithGuid.OnGetting += (obj, e) => getCount++;
 
-                Assert.AreEqual(0, uow.EntitiesWithGuid.AsQueryable().Count());
+                Assert.AreEqual(0, context.EntitiesWithGuid.AsQueryable().Count());
 
                 var entity = new Mock.EntityWithGuid
                 {
@@ -987,20 +1160,20 @@ namespace PubComp.NoSql.AdaptorTests
                     Name = "access-test",
                 };
 
-                uow.EntitiesWithGuid.Add(entity);
+                context.EntitiesWithGuid.Add(entity);
 
                 Assert.AreEqual(1, modifyCount);
                 Assert.AreEqual(0, deleteCount);
                 Assert.AreEqual(0, getCount);
 
-                var item = uow.EntitiesWithGuid.Get(id1);
+                var item = context.EntitiesWithGuid.Get(id1);
                 Assert.AreEqual("access-test", item.Name);
 
                 Assert.AreEqual(1, modifyCount);
                 Assert.AreEqual(0, deleteCount);
                 Assert.AreEqual(1, getCount);
 
-                uow.EntitiesWithGuid.Delete(id1);
+                context.EntitiesWithGuid.Delete(id1);
 
                 Assert.AreEqual(1, modifyCount);
                 Assert.AreEqual(1, deleteCount);
@@ -1018,10 +1191,10 @@ namespace PubComp.NoSql.AdaptorTests
             ida1 = new Guid("{0FE7B0E0-F109-4807-BC36-E1C33822C798}");
             ida2 = new Guid("{C8A36DE3-F65A-4D16-9690-D7BE4F9F6976}");
 
-            using (var uow = getMockContextForAccessTests(
+            using (var context = getMockContextForAccessTests(
                 Status.Private, Status.Private, Status.Private))
             {
-                Assert.AreEqual(0, uow.As.AsQueryable().Count());
+                Assert.AreEqual(0, context.As.AsQueryable().Count());
 
                 a1 = new MocksForAccessTest.EntityA
                 {
@@ -1029,7 +1202,7 @@ namespace PubComp.NoSql.AdaptorTests
                     Text = "a1",
                     Status = Status.Public,
                 };
-                uow.As.Add(a1);
+                context.As.Add(a1);
 
                 a2 = new MocksForAccessTest.EntityA
                 {
@@ -1037,7 +1210,7 @@ namespace PubComp.NoSql.AdaptorTests
                     Text = "a2",
                     Status = Status.Private,
                 };
-                uow.As.Add(a2);
+                context.As.Add(a2);
             }
         }
 
@@ -1048,9 +1221,9 @@ namespace PubComp.NoSql.AdaptorTests
             EntityA a1, a2;
             PrepareAccessTestsData(out id1, out id2, out a1, out a2);
 
-            using (var uow = getMockContextForAccessTests(Status.Private, Status.Private, Status.Private))
+            using (var context = getMockContextForAccessTests(Status.Private, Status.Private, Status.Private))
             {
-                var set = uow.As;
+                var set = context.As;
 
                 var o1 = set.Get(id1);
                 var o2 = set.Get(id2);
@@ -1082,9 +1255,9 @@ namespace PubComp.NoSql.AdaptorTests
             EntityA a1, a2;
             PrepareAccessTestsData(out id1, out id2, out a1, out a2);
 
-            using (var uow = getMockContextForAccessTests(Status.Public, Status.Public, Status.Public))
+            using (var context = getMockContextForAccessTests(Status.Public, Status.Public, Status.Public))
             {
-                var set = uow.As;
+                var set = context.As;
 
                 var o1 = set.Get(id1);
                 set.Update(o1);
@@ -1106,9 +1279,9 @@ namespace PubComp.NoSql.AdaptorTests
             EntityA a1, a2;
             PrepareAccessTestsData(out id1, out id2, out a1, out a2);
 
-            using (var uow = getMockContextForAccessTests(Status.Public, Status.Public, Status.Public))
+            using (var context = getMockContextForAccessTests(Status.Public, Status.Public, Status.Public))
             {
-                var set = uow.As;
+                var set = context.As;
 
                 var o1 = set.Get(id2);
             }
@@ -1121,9 +1294,9 @@ namespace PubComp.NoSql.AdaptorTests
             EntityA a1, a2;
             PrepareAccessTestsData(out id1, out id2, out a1, out a2);
 
-            using (var uow = getMockContextForAccessTests(Status.Public, Status.Public, Status.Public))
+            using (var context = getMockContextForAccessTests(Status.Public, Status.Public, Status.Public))
             {
-                var set = uow.As;
+                var set = context.As;
 
                 set.Update(a2);
             }
@@ -1136,9 +1309,9 @@ namespace PubComp.NoSql.AdaptorTests
             EntityA a1, a2;
             PrepareAccessTestsData(out id1, out id2, out a1, out a2);
 
-            using (var uow = getMockContextForAccessTests(Status.Public, Status.Public, Status.Public))
+            using (var context = getMockContextForAccessTests(Status.Public, Status.Public, Status.Public))
             {
-                var set = uow.As;
+                var set = context.As;
 
                 set.Delete(id2);
             }
@@ -1151,9 +1324,9 @@ namespace PubComp.NoSql.AdaptorTests
             EntityA a1, a2;
             PrepareAccessTestsData(out id1, out id2, out a1, out a2);
 
-            using (var uow = getMockContextForAccessTests(Status.Public, Status.Public, Status.Public))
+            using (var context = getMockContextForAccessTests(Status.Public, Status.Public, Status.Public))
             {
-                var set = uow.As;
+                var set = context.As;
 
                 var o1 = set.Get(id1);
                 o1.Status = Status.Private;
@@ -1168,9 +1341,9 @@ namespace PubComp.NoSql.AdaptorTests
             EntityA a1, a2;
             PrepareAccessTestsData(out id1, out id2, out a1, out a2);
 
-            using (var uow = getMockContextForAccessTests(Status.Public, Status.Public, Status.Public))
+            using (var context = getMockContextForAccessTests(Status.Public, Status.Public, Status.Public))
             {
-                var set = uow.As;
+                var set = context.As;
 
                 set.AddIfNotExists(a2);
             }
@@ -1183,9 +1356,9 @@ namespace PubComp.NoSql.AdaptorTests
             EntityA a1, a2;
             PrepareAccessTestsData(out id1, out id2, out a1, out a2);
 
-            using (var uow = getMockContextForAccessTests(Status.Public, Status.Public, Status.Private))
+            using (var context = getMockContextForAccessTests(Status.Public, Status.Public, Status.Private))
             {
-                var set = uow.As;
+                var set = context.As;
 
                 var o3 = new EntityA
                 {
@@ -1205,9 +1378,9 @@ namespace PubComp.NoSql.AdaptorTests
             EntityA a1, a2;
             PrepareAccessTestsData(out id1, out id2, out a1, out a2);
 
-            using (var uow = getMockContextForAccessTests(Status.Public, Status.Public, Status.Public))
+            using (var context = getMockContextForAccessTests(Status.Public, Status.Public, Status.Public))
             {
-                var set = uow.As;
+                var set = context.As;
 
                 set.AddOrUpdate(a2);
             }
@@ -1220,9 +1393,9 @@ namespace PubComp.NoSql.AdaptorTests
             EntityA a1, a2;
             PrepareAccessTestsData(out id1, out id2, out a1, out a2);
 
-            using (var uow = getMockContextForAccessTests(Status.Public, Status.Public, Status.Public))
+            using (var context = getMockContextForAccessTests(Status.Public, Status.Public, Status.Public))
             {
-                var set = uow.As;
+                var set = context.As;
 
                 var o3 = new EntityA
                 {

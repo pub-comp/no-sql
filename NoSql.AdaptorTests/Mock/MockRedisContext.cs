@@ -37,6 +37,8 @@ namespace PubComp.NoSql.AdaptorTests.Mock
 
         public IEntitySet<Guid, InhertianceEntityWithIgnoredData> InhertianceEntityWithIgnoredData { get; private set; }
 
+        public IEntitySet<Guid, Dates> Dates { get; private set; }
+
         public new IFileSet<Guid> Files { get; private set; }
     }
 }

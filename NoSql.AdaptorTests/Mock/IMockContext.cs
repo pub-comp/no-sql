@@ -16,6 +16,7 @@ namespace PubComp.NoSql.AdaptorTests.Mock
         IEntitySet<Guid, EntityForUpdates> EntitiesForUpdates { get; }
         IEntitySet<Guid, EntityWithIgnoredData> EntityWithIgnoredData { get; }
         IEntitySet<Guid, InhertianceEntityWithIgnoredData> InhertianceEntityWithIgnoredData { get; }
+        IEntitySet<Guid, Dates> Dates { get; }
 
         new IFileSet<Guid> Files { get; }
     }

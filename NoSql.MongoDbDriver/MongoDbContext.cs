@@ -284,7 +284,7 @@ namespace PubComp.NoSql.MongoDbDriver
                         continue;
                     }
 
-                    if (prop.PropertyType == typeof(DateTime))
+                    if (prop.PropertyType == typeof(DateTime) || prop.PropertyType == typeof(DateTime?))
                     {
                         var dateOnly = prop.GetCustomAttributes(typeof(DateOnlyAttribute), true).Any();
 
@@ -292,8 +292,7 @@ namespace PubComp.NoSql.MongoDbDriver
                             .SetSerializationOptions(
                                 new MongoDB.Bson.Serialization.Options.DateTimeSerializationOptions
                                 {
-                                    //DateOnly = dateOnly, // This doesn't work well
-                                    Kind = (dateOnly ? DateTimeKind.Local : DateTimeKind.Utc),
+                                    Kind = DateTimeKind.Local,
                                     Representation = MongoDB.Bson.BsonType.DateTime,
                                 });
                     }
