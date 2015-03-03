@@ -46,5 +46,8 @@
 2.3.2:
 	* MongoDb adaptor: Fixed DateTime and DateTime? serialization issue with non-UTC times
 
+2.3.3:
+	* MongoDb adaptor: Fixed update (single) field for complex properties
+
 Upcoming features:
 Service layer including modify date, state, upsert, roles, rest (odata) queries and more

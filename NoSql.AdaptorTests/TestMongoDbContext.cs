@@ -374,6 +374,69 @@ namespace PubComp.NoSql.AdaptorTests
         }
 
         [TestMethod]
+        public void TestAdd_UpdateSingleField()
+        {
+            var id = Guid.NewGuid();
+
+            using (var context = getMockContext())
+            {
+                var set = context.EntitiesForUpdates;
+
+                var o1 = new EntityForUpdates
+                {
+                    Id = id,
+                    Text = "o1",
+                    Inners = new List<InnerClass>
+                    {
+                        new InnerClass
+                        {
+                            Property = 2,
+                        },
+                    },
+                };
+
+                set.Add(o1);
+            }
+
+            using (var context = getMockContext())
+            {
+                var set = context.EntitiesForUpdates as MongoDbContext.EntitySet<Guid, EntityForUpdates>;
+
+                var o2 = new EntityForUpdates
+                {
+                    Id = id,
+                    Text = "o1-updated",
+                    Inners = new List<InnerClass>
+                    {
+                        new InnerClass
+                        {
+                            Property = 3,
+                        },
+                        new InnerClass
+                        {
+                            Property = 5,
+                        },
+                    },
+                };
+
+                set.UpdateField(o2, "Inners");
+            }
+
+            using (var context = getMockContext())
+            {
+                var set = context.EntitiesForUpdates;
+
+                var o3 = set.Get(id);
+
+                Assert.AreEqual("o1", o3.Text);
+                Assert.IsNotNull(o3.Inners.Count);
+                Assert.AreEqual(2, o3.Inners.Count);
+                Assert.IsTrue(o3.Inners.Any(i => i.Property == 3));
+                Assert.IsTrue(o3.Inners.Any(i => i.Property == 5));
+            }
+        }
+
+        [TestMethod]
         public void TestIncrementField()
         {
             var id = Guid.NewGuid();
