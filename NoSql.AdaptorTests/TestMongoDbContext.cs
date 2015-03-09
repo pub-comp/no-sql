@@ -181,7 +181,7 @@ namespace PubComp.NoSql.AdaptorTests
 
                 Assert.AreEqual(1, results.Count);
 
-                Assert.AreEqual(id1, results[0]._id);
+                Assert.AreEqual(id1, results[0].Id);
 
                 Assert.AreEqual(numberOfTransactions, results[0].value.NumberOfTransactions);
                 Assert.IsTrue(Math.Abs(total1 - 0.1 - results[0].value.Money) <= 1);
@@ -255,7 +255,7 @@ namespace PubComp.NoSql.AdaptorTests
 
                 Assert.AreEqual(1, results.Count);
 
-                Assert.AreEqual(id1, results[0]._id);
+                Assert.AreEqual(id1, results[0].Id);
 
                 Assert.AreEqual("a", results[0].value.Name);
                 Assert.AreEqual(numberOfTransactions, results[0].value.NumberOfTransactions);
@@ -314,7 +314,7 @@ namespace PubComp.NoSql.AdaptorTests
 
                 Assert.AreEqual(1, results.Count);
 
-                Assert.AreEqual(id1, results[0]._id);
+                Assert.AreEqual(id1, results[0].Id);
 
                 Assert.AreEqual(numberOfTransactions, results[0].value.NumberOfTransactions);
                 Assert.IsTrue(Math.Abs(total1 - 0.1 - results[0].value.Money) <= 1);

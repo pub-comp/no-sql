@@ -49,5 +49,8 @@
 2.3.3:
 	* MongoDb adaptor: Fixed update (single) field for complex properties
 
+2.3.4:
+	* MongoDb adaptor: Small change to ReductionResult - implements IEntity<TKey> now
+
 Upcoming features:
 Service layer including modify date, state, upsert, roles, rest (odata) queries and more

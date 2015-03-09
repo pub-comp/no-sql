@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using PubComp.NoSql.Core;
 
 namespace PubComp.NoSql.MongoDbDriver
 {
-    public class ReductionResult<TId, TResult>
+    public class ReductionResult<TId, TResult> : IEntity<TId>
     {
-        public TId _id { get; set; }
+        public TId Id { get; set; }
         public TResult value { get; set; }
     }
 }

@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace PubComp.NoSql.AdaptorTests
+﻿namespace PubComp.NoSql.AdaptorTests
 {
     public static class ParametersForTests
     {
@@ -20,7 +14,10 @@ namespace PubComp.NoSql.AdaptorTests
         {
             get
             {
-                return new MongoDbDriver.MongoDbConnectionInfo();
+                return new MongoDbDriver.MongoDbConnectionInfo
+                {
+                    Db = "Test-NoSQL"
+                };
             }
         }
     }
