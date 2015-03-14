@@ -189,6 +189,62 @@ namespace PubComp.NoSql.AdaptorTests
         }
 
         [TestMethod]
+        public void TestReductionWithoutQueryAndFinalize()
+        {
+            // Note: The reduction failed when I attempted to use Decimal instead of Double
+
+            Guid id1 = Guid.NewGuid();
+            Guid id2 = Guid.NewGuid();
+
+            int numberOfTransactions = 1000;
+            double total1, total2;
+            PrepareReductionData(id1, id2, numberOfTransactions, out total1, out total2);
+
+            using (var context = getMockContext() as MockMongoDbContext)
+            {
+                context.UpdateIndexes(true);
+
+                // Select function for iterator
+                const string map =
+                    @"function() {
+                        var transaction = this;
+                        emit(transaction.OwnerId, { NumberOfTransactions: 1, Money: transaction.Money });
+                    }";
+
+                // Aggregation of values into a single result
+                const string reduce =
+                    @"function(key, values) {
+                        var result = { NumberOfTransactions: 0, Money: 0 }; // initial value
+                        values.forEach(function(value) { // aggregation function
+                            result.NumberOfTransactions += value.NumberOfTransactions;
+                            result.Money += value.Money;
+                        });
+                        return result;
+                    }";
+
+                IEnumerable<ReductionResult<Guid, AccountStatus>> reduction;
+
+                var set = (MongoDbDriver.MongoDbContext.EntitySet<Guid, EntityForCalc>)context.EntitiesForCalc;
+
+                set.Reduce<ReductionResult<Guid, AccountStatus>>(
+                    null, map, reduce, null, true, out reduction, ReduceStoreMode.None);
+
+                var results = reduction.ToList();
+
+                Assert.AreEqual(2, results.Count);
+
+                Assert.IsTrue(results.Any(r => r.Id == id1));
+                Assert.IsTrue(results.Any(r => r.Id == id2));
+
+                Assert.AreEqual(numberOfTransactions, results.First(r => r.Id == id1).value.NumberOfTransactions);
+                Assert.IsTrue(Math.Abs(total1 - results.First(r => r.Id == id1).value.Money) <= 1);
+
+                Assert.AreEqual(numberOfTransactions, results.First(r => r.Id == id2).value.NumberOfTransactions);
+                Assert.IsTrue(Math.Abs(total2 - results.First(r => r.Id == id2).value.Money) <= 1);
+            }
+        }
+
+        [TestMethod]
         public void TestReductionWithJoin()
         {
             // Note: The reduction failed when I attempted to use Decimal instead of Double

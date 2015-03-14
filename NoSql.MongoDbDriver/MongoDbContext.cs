@@ -202,16 +202,60 @@ namespace PubComp.NoSql.MongoDbDriver
                     break;
             }
 
-            var reductionResults = collection.MapReduce(
-                new MongoDB.Driver.MapReduceArgs
+            MongoDB.Driver.MapReduceArgs args;
+
+            if (query != null)
+            {
+                if (finalizeFunction != null)
                 {
-                    Query = query,
-                    MapFunction = mapFunction,
-                    ReduceFunction = reduceFunction,
-                    FinalizeFunction = finalizeFunction,
-                    OutputMode = outputMode,
-                    OutputCollectionName = outputCollectionName
-                });
+                    args = new MongoDB.Driver.MapReduceArgs
+                    {
+                        Query = query,
+                        MapFunction = mapFunction,
+                        ReduceFunction = reduceFunction,
+                        FinalizeFunction = finalizeFunction,
+                        OutputMode = outputMode,
+                        OutputCollectionName = outputCollectionName
+                    };
+                }
+                else
+                {
+                    args = new MongoDB.Driver.MapReduceArgs
+                    {
+                        Query = query,
+                        MapFunction = mapFunction,
+                        ReduceFunction = reduceFunction,
+                        OutputMode = outputMode,
+                        OutputCollectionName = outputCollectionName
+                    };
+                }
+            }
+            else
+            {
+                if (finalizeFunction != null)
+                {
+                    args = new MongoDB.Driver.MapReduceArgs
+                    {
+                        MapFunction = mapFunction,
+                        ReduceFunction = reduceFunction,
+                        FinalizeFunction = finalizeFunction,
+                        OutputMode = outputMode,
+                        OutputCollectionName = outputCollectionName
+                    };
+                }
+                else
+                {
+                    args = new MongoDB.Driver.MapReduceArgs
+                    {
+                        MapFunction = mapFunction,
+                        ReduceFunction = reduceFunction,
+                        OutputMode = outputMode,
+                        OutputCollectionName = outputCollectionName
+                    };
+                }
+            }
+
+            var reductionResults = collection.MapReduce(args);
 
             results = (doGetResults) ?
                     ((storeMode == ReduceStoreMode.None)
@@ -229,7 +273,9 @@ namespace PubComp.NoSql.MongoDbDriver
         {
             var collection = this.innerContext.GetServer().GetDatabase(db).GetCollection<TEntity>(collectionName);
 
-            var query = new MongoDB.Driver.Builders.QueryBuilder<TEntity>().Where(queryExpression);
+            var query = (queryExpression != null)
+                ? new MongoDB.Driver.Builders.QueryBuilder<TEntity>().Where(queryExpression)
+                : null;
 
             MapReduceInner<TResult>(
                 collection, query,
@@ -900,7 +946,9 @@ namespace PubComp.NoSql.MongoDbDriver
                 ReduceStoreMode storeMode = ReduceStoreMode.None, string resultSet = null)
                 where TResult : new()
             {
-                var query = new MongoDB.Driver.Builders.QueryBuilder<TEntity>().Where(queryExpression);
+                var query = (queryExpression != null)
+                    ? new MongoDB.Driver.Builders.QueryBuilder<TEntity>().Where(queryExpression)
+                    : null;
 
                 MapReduceInner<TResult>(
                     this.innerSet, query,

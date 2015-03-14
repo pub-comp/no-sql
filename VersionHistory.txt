@@ -52,5 +52,8 @@
 2.3.4:
 	* MongoDb adaptor: Small change to ReductionResult - implements IEntity<TKey> now
 
+2.3.5:
+	* MongoDb adaptor: Enable map-reduce without query (with null query) and without finalize function (with null finalize function)
+
 Upcoming features:
 Service layer including modify date, state, upsert, roles, rest (odata) queries and more
