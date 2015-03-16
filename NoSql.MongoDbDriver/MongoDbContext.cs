@@ -190,14 +190,14 @@ namespace PubComp.NoSql.MongoDbDriver
         }
 
         public IEntitySet<TKey, TEntity> GetEntitySet<TKey, TEntity>(string collectionName)
-            where TEntity : class, IEntity<TKey>, new()
+            where TEntity : class, IEntity<TKey>
         {
             var entitySet = new EntitySet<TKey, TEntity>(this, this.db, collectionName);
             return entitySet;
         }
 
         public IEntitySet<TKey, TEntity> GetEntitySet<TKey, TEntity>(string dbName, string collectionName)
-            where TEntity : class, IEntity<TKey>, new()
+            where TEntity : class, IEntity<TKey>
         {
             var entitySet = new EntitySet<TKey, TEntity>(this, dbName, collectionName);
             return entitySet;

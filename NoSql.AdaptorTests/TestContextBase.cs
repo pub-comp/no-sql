@@ -10,21 +10,21 @@ namespace PubComp.NoSql.AdaptorTests
 {
     public abstract class TestContextBase
     {
-        protected readonly Func<IMockContext> getMockContext;
-        protected GetMockContextForAccessTestsDelegate getMockContextForAccessTests;
-        protected readonly Action<IMockContext> deleteMockContext;
-        protected readonly Action<IMockContextForAccessTests> deleteMockContextForAccessTests;
+        protected readonly Func<IMockContext> getTestContext;
+        protected GetMockContextForAccessTestsDelegate getTestContextForAccessTests;
+        protected readonly Action<IMockContext> deleteTestContext;
+        protected readonly Action<IMockContextForAccessTests> deleteTestContextForAccessTests;
 
         protected TestContextBase(
-            Func<IMockContext> getMockContext,
-            GetMockContextForAccessTestsDelegate getMockContextForAccessTests,
-            Action<IMockContext> deleteMockContext,
-            Action<IMockContextForAccessTests> deleteMockContextForAccessTests)
+            Func<IMockContext> getTestContext,
+            GetMockContextForAccessTestsDelegate getTestContextForAccessTests,
+            Action<IMockContext> deleteTestContext,
+            Action<IMockContextForAccessTests> deleteTestContextForAccessTests)
         {
-            this.getMockContext = getMockContext;
-            this.getMockContextForAccessTests = getMockContextForAccessTests;
-            this.deleteMockContext = deleteMockContext;
-            this.deleteMockContextForAccessTests = deleteMockContextForAccessTests;
+            this.getTestContext = getTestContext;
+            this.getTestContextForAccessTests = getTestContextForAccessTests;
+            this.deleteTestContext = deleteTestContext;
+            this.deleteTestContextForAccessTests = deleteTestContextForAccessTests;
         }
 
         protected delegate IMockContextForAccessTests GetMockContextForAccessTestsDelegate(
@@ -38,14 +38,14 @@ namespace PubComp.NoSql.AdaptorTests
 
         private void DeleteAll()
         {
-            using (var context = getMockContext())
+            using (var context = getTestContext())
             {
-                deleteMockContext(context);
+                deleteTestContext(context);
             }
 
-            using (var context = getMockContextForAccessTests(Status.Private, Status.Private, Status.Private))
+            using (var context = getTestContextForAccessTests(Status.Private, Status.Private, Status.Private))
             {
-                deleteMockContextForAccessTests(context);
+                deleteTestContextForAccessTests(context);
             }
         }
 
@@ -61,7 +61,7 @@ namespace PubComp.NoSql.AdaptorTests
         {
             var id = Guid.NewGuid();
 
-            using (var context = getMockContext())
+            using (var context = getTestContext())
             {
                 var set = context.EntitiesForUpdates;
 
@@ -81,7 +81,7 @@ namespace PubComp.NoSql.AdaptorTests
                 set.Add(o1);
             }
 
-            using (var context = getMockContext())
+            using (var context = getTestContext())
             {
                 var set = context.EntitiesForUpdates;
 
@@ -99,7 +99,7 @@ namespace PubComp.NoSql.AdaptorTests
         {
             var id = Guid.NewGuid();
 
-            using (var context = getMockContext())
+            using (var context = getTestContext())
             {
                 var set = context.EntitiesForUpdates;
 
@@ -119,7 +119,7 @@ namespace PubComp.NoSql.AdaptorTests
                 set.Add(o1);
             }
 
-            using (var context = getMockContext())
+            using (var context = getTestContext())
             {
                 var set = context.EntitiesForUpdates;
 
@@ -143,7 +143,7 @@ namespace PubComp.NoSql.AdaptorTests
                 set.Update(o2);
             }
 
-            using (var context = getMockContext())
+            using (var context = getTestContext())
             {
                 var set = context.EntitiesForUpdates;
 
@@ -162,7 +162,7 @@ namespace PubComp.NoSql.AdaptorTests
         {
             var id = Guid.NewGuid();
 
-            using (var context = getMockContext())
+            using (var context = getTestContext())
             {
                 var set = context.EntitiesWithGuid;
 
@@ -175,14 +175,14 @@ namespace PubComp.NoSql.AdaptorTests
                 set.Add(o1);
             }
 
-            using (var context = getMockContext())
+            using (var context = getTestContext())
             {
                 var set = context.EntitiesWithGuid;
 
                 set.Delete(id);
             }
 
-            using (var context = getMockContext())
+            using (var context = getTestContext())
             {
                 var set = context.EntitiesWithGuid;
 
@@ -199,7 +199,7 @@ namespace PubComp.NoSql.AdaptorTests
 
             EntityWithGuid o1;
 
-            using (var context = getMockContext())
+            using (var context = getTestContext())
             {
                 var set = context.EntitiesWithGuid;
 
@@ -212,14 +212,14 @@ namespace PubComp.NoSql.AdaptorTests
                 set.Add(o1);
             }
 
-            using (var context = getMockContext())
+            using (var context = getTestContext())
             {
                 var set = context.EntitiesWithGuid;
 
                 set.Delete(o1);
             }
 
-            using (var context = getMockContext())
+            using (var context = getTestContext())
             {
                 var set = context.EntitiesWithGuid;
 
@@ -234,7 +234,7 @@ namespace PubComp.NoSql.AdaptorTests
         {
             var id = Guid.NewGuid();
 
-            using (var context = getMockContext())
+            using (var context = getTestContext())
             {
                 var set = context.EntitiesWithGuid;
 
@@ -247,7 +247,7 @@ namespace PubComp.NoSql.AdaptorTests
                 set.Add(o1);
             }
 
-            using (var context = getMockContext())
+            using (var context = getTestContext())
             {
                 var set = context.EntitiesWithGuid;
 
@@ -261,7 +261,7 @@ namespace PubComp.NoSql.AdaptorTests
                 Assert.IsFalse(added);
             }
 
-            using (var context = getMockContext())
+            using (var context = getTestContext())
             {
                 var set = context.EntitiesWithGuid;
 
@@ -276,7 +276,7 @@ namespace PubComp.NoSql.AdaptorTests
         {
             var id = Guid.NewGuid();
 
-            using (var context = getMockContext())
+            using (var context = getTestContext())
             {
                 var set = context.EntitiesWithGuid;
 
@@ -290,7 +290,7 @@ namespace PubComp.NoSql.AdaptorTests
                 Assert.IsTrue(added);
             }
 
-            using (var context = getMockContext())
+            using (var context = getTestContext())
             {
                 var set = context.EntitiesWithGuid;
 
@@ -305,7 +305,7 @@ namespace PubComp.NoSql.AdaptorTests
         {
             var id = Guid.NewGuid();
 
-            using (var context = getMockContext())
+            using (var context = getTestContext())
             {
                 var set = context.EntitiesWithGuid;
 
@@ -318,7 +318,7 @@ namespace PubComp.NoSql.AdaptorTests
                 set.Add(o1);
             }
 
-            using (var context = getMockContext())
+            using (var context = getTestContext())
             {
                 var set = context.EntitiesWithGuid;
 
@@ -331,7 +331,7 @@ namespace PubComp.NoSql.AdaptorTests
                 set.AddOrUpdate(o2);
             }
 
-            using (var context = getMockContext())
+            using (var context = getTestContext())
             {
                 var set = context.EntitiesWithGuid;
 
@@ -346,7 +346,7 @@ namespace PubComp.NoSql.AdaptorTests
         {
             var id = Guid.NewGuid();
 
-            using (var context = getMockContext())
+            using (var context = getTestContext())
             {
                 var set = context.EntitiesWithGuid;
 
@@ -359,7 +359,7 @@ namespace PubComp.NoSql.AdaptorTests
                 set.AddOrUpdate(o2);
             }
 
-            using (var context = getMockContext())
+            using (var context = getTestContext())
             {
                 var set = context.EntitiesWithGuid;
 
@@ -374,7 +374,7 @@ namespace PubComp.NoSql.AdaptorTests
         {
             var id = Guid.NewGuid();
 
-            using (var context = getMockContext())
+            using (var context = getTestContext())
             {
                 var set = context.Dates;
 
@@ -387,7 +387,7 @@ namespace PubComp.NoSql.AdaptorTests
                 set.AddOrUpdate(o1);
             }
 
-            using (var context = getMockContext())
+            using (var context = getTestContext())
             {
                 var set = context.Dates;
 
@@ -402,7 +402,7 @@ namespace PubComp.NoSql.AdaptorTests
         {
             var id = Guid.NewGuid();
 
-            using (var context = getMockContext())
+            using (var context = getTestContext())
             {
                 var set = context.Dates;
 
@@ -415,7 +415,7 @@ namespace PubComp.NoSql.AdaptorTests
                 set.AddOrUpdate(o1);
             }
 
-            using (var context = getMockContext())
+            using (var context = getTestContext())
             {
                 var set = context.Dates;
 
@@ -430,7 +430,7 @@ namespace PubComp.NoSql.AdaptorTests
         {
             var id = Guid.NewGuid();
 
-            using (var context = getMockContext())
+            using (var context = getTestContext())
             {
                 var set = context.Dates;
 
@@ -443,7 +443,7 @@ namespace PubComp.NoSql.AdaptorTests
                 set.AddOrUpdate(o1);
             }
 
-            using (var context = getMockContext())
+            using (var context = getTestContext())
             {
                 var set = context.Dates;
 
@@ -458,7 +458,7 @@ namespace PubComp.NoSql.AdaptorTests
         {
             var id = Guid.NewGuid();
 
-            using (var context = getMockContext())
+            using (var context = getTestContext())
             {
                 var set = context.Dates;
 
@@ -471,7 +471,7 @@ namespace PubComp.NoSql.AdaptorTests
                 set.AddOrUpdate(o1);
             }
 
-            using (var context = getMockContext())
+            using (var context = getTestContext())
             {
                 var set = context.Dates;
 
@@ -489,7 +489,7 @@ namespace PubComp.NoSql.AdaptorTests
             var date2 = new DateTime(2002, 04, 08, 16, 32, 04, 128);
             var date3 = new DateTime(2002, 04, 08, 16, 32, 04, 129);
 
-            using (var context = getMockContext())
+            using (var context = getTestContext())
             {
                 var set = context.Dates;
 
@@ -502,7 +502,7 @@ namespace PubComp.NoSql.AdaptorTests
                 set.AddOrUpdate(o1);
             }
 
-            using (var context = getMockContext())
+            using (var context = getTestContext())
             {
                 var dates = context.Dates.AsQueryable().Where(d => d.Date2 > date1 && d.Date2 < date3).ToList();
                 Assert.AreEqual(1, dates.Count);
@@ -519,7 +519,7 @@ namespace PubComp.NoSql.AdaptorTests
             var date2 = new DateTime(2002, 04, 08, 16, 32, 04, 128);
             var date3 = new DateTime(2002, 04, 08, 16, 32, 04, 129);
 
-            using (var context = getMockContext())
+            using (var context = getTestContext())
             {
                 var set = context.Dates;
 
@@ -532,7 +532,7 @@ namespace PubComp.NoSql.AdaptorTests
                 set.AddOrUpdate(o1);
             }
 
-            using (var context = getMockContext())
+            using (var context = getTestContext())
             {
                 var dates = context.Dates.AsQueryable().Where(d => d.Date4 != null && d.Date4 > date1 && d.Date4 < date3).ToList();
                 Assert.AreEqual(1, dates.Count);
@@ -553,7 +553,7 @@ namespace PubComp.NoSql.AdaptorTests
             var id2 = new Guid("{4D50A826-9F0A-473F-8B16-E2CA2F71431E}");
             var id3 = new Guid("{87FBB4F8-9699-465B-94A5-A94324693B72}");
 
-            using (var context = getMockContext())
+            using (var context = getTestContext())
             {
                 Assert.AreEqual(0, context.MultiIDEntities.AsQueryable().Count());
 
@@ -569,7 +569,7 @@ namespace PubComp.NoSql.AdaptorTests
                 Assert.IsNull(existing);
             }
 
-            using (var context = getMockContext())
+            using (var context = getTestContext())
             {
                 var item = new MultiIDEntity
                 {
@@ -582,7 +582,7 @@ namespace PubComp.NoSql.AdaptorTests
                 Assert.AreEqual(MyFlags.One, existing.Flags);
             }
 
-            using (var context = getMockContext())
+            using (var context = getTestContext())
             {
                 var item = context.MultiIDEntities.Get(id1);
                 Assert.IsNotNull(item);
@@ -598,7 +598,7 @@ namespace PubComp.NoSql.AdaptorTests
             var id2 = new Guid("{4D50A826-9F0A-473F-8B16-E2CA2F71431E}");
             var id3 = new Guid("{87FBB4F8-9699-465B-94A5-A94324693B72}");
 
-            using (var context = getMockContext())
+            using (var context = getTestContext())
             {
                 Assert.AreEqual(0, context.MultiIDEntities.AsQueryable().Count());
 
@@ -613,7 +613,7 @@ namespace PubComp.NoSql.AdaptorTests
                 Assert.IsTrue(context.MultiIDEntities.AddIfNotExists(item));
             }
 
-            using (var context = getMockContext())
+            using (var context = getTestContext())
             {
                 var item = new MultiIDEntity
                 {
@@ -624,7 +624,7 @@ namespace PubComp.NoSql.AdaptorTests
                 Assert.IsFalse(context.MultiIDEntities.AddIfNotExists(item));
             }
 
-            using (var context = getMockContext())
+            using (var context = getTestContext())
             {
                 var item = context.MultiIDEntities.Get(id1);
                 Assert.IsNotNull(item);
@@ -640,7 +640,7 @@ namespace PubComp.NoSql.AdaptorTests
             var id2 = new Guid("{4D50A826-9F0A-473F-8B16-E2CA2F71431E}");
             var id3 = new Guid("{87FBB4F8-9699-465B-94A5-A94324693B72}");
 
-            using (var context = getMockContext())
+            using (var context = getTestContext())
             {
                 Assert.AreEqual(0, context.MultiIDEntities.AsQueryable().Count());
 
@@ -656,7 +656,7 @@ namespace PubComp.NoSql.AdaptorTests
                 Assert.IsNull(existing);
             }
 
-            using (var context = getMockContext())
+            using (var context = getTestContext())
             {
                 var item = new MultiIDEntity
                 {
@@ -667,7 +667,7 @@ namespace PubComp.NoSql.AdaptorTests
                 context.MultiIDEntities.AddOrUpdate(item);
             }
 
-            using (var context = getMockContext())
+            using (var context = getTestContext())
             {
                 var item = context.MultiIDEntities.Get(id1);
                 Assert.IsNotNull(item);
@@ -683,7 +683,7 @@ namespace PubComp.NoSql.AdaptorTests
             var id2 = new Guid("{4D50A826-9F0A-473F-8B16-E2CA2F71431E}");
             var id3 = new Guid("{87FBB4F8-9699-465B-94A5-A94324693B72}");
 
-            using (var context = getMockContext())
+            using (var context = getTestContext())
             {
                 Assert.AreEqual(0, context.MultiIDEntities.AsQueryable().Count());
 
@@ -698,7 +698,7 @@ namespace PubComp.NoSql.AdaptorTests
                 context.MultiIDEntities.Add(item);
             }
 
-            using (var context = getMockContext())
+            using (var context = getTestContext())
             {
                 var item = context.MultiIDEntities.AsQueryable().Where(e => e.Item1Id == id2 && e.Item2Id == id3).SingleOrDefault();
                 Assert.IsNotNull(item);
@@ -708,7 +708,7 @@ namespace PubComp.NoSql.AdaptorTests
                 context.MultiIDEntities.Update(item);
             }
 
-            using (var context = getMockContext())
+            using (var context = getTestContext())
             {
                 var item = context.MultiIDEntities.Get(id1);
                 Assert.IsNotNull(item);
@@ -728,7 +728,7 @@ namespace PubComp.NoSql.AdaptorTests
             var id2 = new Guid("{4D50A826-9F0A-473F-8B16-E2CA2F71431E}");
             var id3 = new Guid("{87FBB4F8-9699-465B-94A5-A94324693B72}");
 
-            using (var context = getMockContext())
+            using (var context = getTestContext())
             {
                 Assert.AreEqual(0, context.EntitiesWithGuid.AsQueryable().Count());
 
@@ -753,7 +753,7 @@ namespace PubComp.NoSql.AdaptorTests
                 context.EntitiesWithGuid.Add(new[] { aaaa, bbbb, cccc });
             }
 
-            using (var context = getMockContext())
+            using (var context = getTestContext())
             {
                 Assert.AreEqual(3, context.EntitiesWithGuid.AsQueryable().Count());
 
@@ -777,7 +777,7 @@ namespace PubComp.NoSql.AdaptorTests
             var id2 = 3;
             var id3 = 7;
 
-            using (var context = getMockContext())
+            using (var context = getTestContext())
             {
                 Assert.AreEqual(0, context.EntitiesWithInt.AsQueryable().Count());
 
@@ -802,7 +802,7 @@ namespace PubComp.NoSql.AdaptorTests
                 context.EntitiesWithInt.Add(new[] { aaaa, bbbb, cccc });
             }
 
-            using (var context = getMockContext())
+            using (var context = getTestContext())
             {
                 Assert.AreEqual(3, context.EntitiesWithInt.AsQueryable().Count());
 
@@ -826,7 +826,7 @@ namespace PubComp.NoSql.AdaptorTests
             var id2 = "bbbbbbbbbbbbbbbbb";
             var id3 = "xxxxxxxxxxxxxxxxxxxxxxx";
 
-            using (var context = getMockContext())
+            using (var context = getTestContext())
             {
                 Assert.AreEqual(0, context.EntitiesWithString.AsQueryable().Count());
 
@@ -851,7 +851,7 @@ namespace PubComp.NoSql.AdaptorTests
                 context.EntitiesWithString.Add(new[] { aaaa, bbbb, cccc });
             }
 
-            using (var context = getMockContext())
+            using (var context = getTestContext())
             {
                 Assert.AreEqual(3, context.EntitiesWithString.AsQueryable().Count());
 
@@ -879,7 +879,7 @@ namespace PubComp.NoSql.AdaptorTests
             var id2 = new Guid("{4D50A826-9F0A-473F-8B16-E2CA2F71431E}");
             var id3 = new Guid("{87FBB4F8-9699-465B-94A5-A94324693B72}");
 
-            using (var context = getMockContext())
+            using (var context = getTestContext())
             {
                 Assert.AreEqual(0, context.EntitiesWithGuid.AsQueryable().Count());
 
@@ -906,7 +906,7 @@ namespace PubComp.NoSql.AdaptorTests
                 context.EntitiesWithGuid.Add(new[] { aaaa, bbbb, cccc });
             }
 
-            using (var context = getMockContext())
+            using (var context = getTestContext())
             {
                 Assert.AreEqual(3, context.EntitiesWithGuid.AsQueryable().Count());
 
@@ -934,7 +934,7 @@ namespace PubComp.NoSql.AdaptorTests
         {
             var id1 = new Guid("{A8EA2462-B641-40AE-A4AC-AF8373DF9B75}");
 
-            using (var context = getMockContext())
+            using (var context = getTestContext())
             {
                 Assert.AreEqual(0, context.EntityWithIgnoredData.AsQueryable().Count());
 
@@ -950,7 +950,7 @@ namespace PubComp.NoSql.AdaptorTests
                 context.EntityWithIgnoredData.Add(item);
             }
 
-            using (var context = getMockContext())
+            using (var context = getTestContext())
             {
                 var item = context.EntityWithIgnoredData.Get(id1);
                 Assert.AreEqual("xxx", item.Name);
@@ -964,7 +964,7 @@ namespace PubComp.NoSql.AdaptorTests
         {
             var id1 = new Guid("{05144A99-A6A0-4D87-BB36-2CE0A91331DA}");
 
-            using (var context = getMockContext())
+            using (var context = getTestContext())
             {
                 Assert.AreEqual(0, context.InhertianceEntityWithIgnoredData.AsQueryable().Count());
 
@@ -981,7 +981,7 @@ namespace PubComp.NoSql.AdaptorTests
                 context.InhertianceEntityWithIgnoredData.Add(item);
             }
 
-            using (var context = getMockContext())
+            using (var context = getTestContext())
             {
                 var item = context.InhertianceEntityWithIgnoredData.Get(id1) as InhertianceEntityWithIgnoredDataChild;
                 Assert.AreEqual("xxx", item.Name);
@@ -1000,7 +1000,7 @@ namespace PubComp.NoSql.AdaptorTests
             var id3 = new Guid("{3AC03C43-8C89-4870-A4B0-F21F7459E1D0}");
             var id4 = new Guid("{A284498A-2F05-4449-8E91-9D471B598C9C}");
 
-            using (var context = getMockContext())
+            using (var context = getTestContext())
             {
                 Assert.AreEqual(0, context.EntitiesWithNavigation.AsQueryable().Count());
 
@@ -1034,7 +1034,7 @@ namespace PubComp.NoSql.AdaptorTests
                 context.EntitiesWithNavigation.SaveNavigation(new[] { item }, new[] { "Info", "Tags" });
             }
 
-            using (var context = getMockContext())
+            using (var context = getTestContext())
             {
                 var item = context.EntitiesWithNavigation.Get(id4);
                 Assert.AreEqual("xxx", item.Name);
@@ -1060,7 +1060,7 @@ namespace PubComp.NoSql.AdaptorTests
         {
             var id1 = new Guid("{B09F4B8E-1853-4C01-84D8-57C87A1F7F31}");
 
-            using (var context = getMockContext())
+            using (var context = getTestContext())
             {
                 int modifyCount = 0;
                 int deleteCount = 0;
@@ -1098,7 +1098,7 @@ namespace PubComp.NoSql.AdaptorTests
         {
             var id1 = new Guid("{B09F4B8E-1853-4C01-84D8-57C87A1F7F31}");
 
-            using (var context = getMockContext())
+            using (var context = getTestContext())
             {
                 int modifyCount = 0;
                 int deleteCount = 0;
@@ -1142,7 +1142,7 @@ namespace PubComp.NoSql.AdaptorTests
         {
             var id1 = new Guid("{B09F4B8E-1853-4C01-84D8-57C87A1F7F31}");
 
-            using (var context = getMockContext())
+            using (var context = getTestContext())
             {
                 int modifyCount = 0;
                 int deleteCount = 0;
@@ -1191,7 +1191,7 @@ namespace PubComp.NoSql.AdaptorTests
             ida1 = new Guid("{0FE7B0E0-F109-4807-BC36-E1C33822C798}");
             ida2 = new Guid("{C8A36DE3-F65A-4D16-9690-D7BE4F9F6976}");
 
-            using (var context = getMockContextForAccessTests(
+            using (var context = getTestContextForAccessTests(
                 Status.Private, Status.Private, Status.Private))
             {
                 Assert.AreEqual(0, context.As.AsQueryable().Count());
@@ -1221,7 +1221,7 @@ namespace PubComp.NoSql.AdaptorTests
             EntityA a1, a2;
             PrepareAccessTestsData(out id1, out id2, out a1, out a2);
 
-            using (var context = getMockContextForAccessTests(Status.Private, Status.Private, Status.Private))
+            using (var context = getTestContextForAccessTests(Status.Private, Status.Private, Status.Private))
             {
                 var set = context.As;
 
@@ -1255,7 +1255,7 @@ namespace PubComp.NoSql.AdaptorTests
             EntityA a1, a2;
             PrepareAccessTestsData(out id1, out id2, out a1, out a2);
 
-            using (var context = getMockContextForAccessTests(Status.Public, Status.Public, Status.Public))
+            using (var context = getTestContextForAccessTests(Status.Public, Status.Public, Status.Public))
             {
                 var set = context.As;
 
@@ -1279,7 +1279,7 @@ namespace PubComp.NoSql.AdaptorTests
             EntityA a1, a2;
             PrepareAccessTestsData(out id1, out id2, out a1, out a2);
 
-            using (var context = getMockContextForAccessTests(Status.Public, Status.Public, Status.Public))
+            using (var context = getTestContextForAccessTests(Status.Public, Status.Public, Status.Public))
             {
                 var set = context.As;
 
@@ -1294,7 +1294,7 @@ namespace PubComp.NoSql.AdaptorTests
             EntityA a1, a2;
             PrepareAccessTestsData(out id1, out id2, out a1, out a2);
 
-            using (var context = getMockContextForAccessTests(Status.Public, Status.Public, Status.Public))
+            using (var context = getTestContextForAccessTests(Status.Public, Status.Public, Status.Public))
             {
                 var set = context.As;
 
@@ -1309,7 +1309,7 @@ namespace PubComp.NoSql.AdaptorTests
             EntityA a1, a2;
             PrepareAccessTestsData(out id1, out id2, out a1, out a2);
 
-            using (var context = getMockContextForAccessTests(Status.Public, Status.Public, Status.Public))
+            using (var context = getTestContextForAccessTests(Status.Public, Status.Public, Status.Public))
             {
                 var set = context.As;
 
@@ -1324,7 +1324,7 @@ namespace PubComp.NoSql.AdaptorTests
             EntityA a1, a2;
             PrepareAccessTestsData(out id1, out id2, out a1, out a2);
 
-            using (var context = getMockContextForAccessTests(Status.Public, Status.Public, Status.Public))
+            using (var context = getTestContextForAccessTests(Status.Public, Status.Public, Status.Public))
             {
                 var set = context.As;
 
@@ -1341,7 +1341,7 @@ namespace PubComp.NoSql.AdaptorTests
             EntityA a1, a2;
             PrepareAccessTestsData(out id1, out id2, out a1, out a2);
 
-            using (var context = getMockContextForAccessTests(Status.Public, Status.Public, Status.Public))
+            using (var context = getTestContextForAccessTests(Status.Public, Status.Public, Status.Public))
             {
                 var set = context.As;
 
@@ -1356,7 +1356,7 @@ namespace PubComp.NoSql.AdaptorTests
             EntityA a1, a2;
             PrepareAccessTestsData(out id1, out id2, out a1, out a2);
 
-            using (var context = getMockContextForAccessTests(Status.Public, Status.Public, Status.Private))
+            using (var context = getTestContextForAccessTests(Status.Public, Status.Public, Status.Private))
             {
                 var set = context.As;
 
@@ -1378,7 +1378,7 @@ namespace PubComp.NoSql.AdaptorTests
             EntityA a1, a2;
             PrepareAccessTestsData(out id1, out id2, out a1, out a2);
 
-            using (var context = getMockContextForAccessTests(Status.Public, Status.Public, Status.Public))
+            using (var context = getTestContextForAccessTests(Status.Public, Status.Public, Status.Public))
             {
                 var set = context.As;
 
@@ -1393,7 +1393,7 @@ namespace PubComp.NoSql.AdaptorTests
             EntityA a1, a2;
             PrepareAccessTestsData(out id1, out id2, out a1, out a2);
 
-            using (var context = getMockContextForAccessTests(Status.Public, Status.Public, Status.Public))
+            using (var context = getTestContextForAccessTests(Status.Public, Status.Public, Status.Public))
             {
                 var set = context.As;
 
@@ -1414,7 +1414,7 @@ namespace PubComp.NoSql.AdaptorTests
 
         protected void PrepareReductionData(Guid id1, Guid id2, int numberOfTransactions, out double total1, out double total2)
         {
-            using (var context = getMockContext())
+            using (var context = getTestContext())
             {
                 context.EntitiesWithGuid.Add(new EntityWithGuid
                 {
@@ -1469,7 +1469,7 @@ namespace PubComp.NoSql.AdaptorTests
             double total1, total2;
             PrepareReductionData(id1, id2, numberOfTransactions, out total1, out total2);
 
-            using (var context = getMockContext())
+            using (var context = getTestContext())
             {
                 var results = context.EntitiesForCalc.AsQueryable()
                     .Where(e => e.OwnerId == id1)
@@ -1505,7 +1505,7 @@ namespace PubComp.NoSql.AdaptorTests
             double total1, total2;
             PrepareReductionData(id1, id2, numberOfTransactions, out total1, out total2);
 
-            using (var context = getMockContext())
+            using (var context = getTestContext())
             {
                 var query1 = context.EntitiesWithGuid.AsQueryable()
                     .Where(e => e.Id == id1)
@@ -1560,12 +1560,12 @@ namespace PubComp.NoSql.AdaptorTests
                 Name = "x",
             };
 
-            using (var context = getMockContext())
+            using (var context = getTestContext())
             {
                 context.EntitiesWithNavigation.Add(entity);
             }
 
-            using (var context = getMockContext())
+            using (var context = getTestContext())
             {
                 context.EntitiesWithNavigation.Update(entity);
             }

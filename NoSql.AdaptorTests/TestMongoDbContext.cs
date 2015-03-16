@@ -141,7 +141,7 @@ namespace PubComp.NoSql.AdaptorTests
             double total1, total2;
             PrepareReductionData(id1, id2, numberOfTransactions, out total1, out total2);
 
-            using (var context = getMockContext() as MockMongoDbContext)
+            using (var context = getTestContext() as MockMongoDbContext)
             {
                 context.UpdateIndexes(true);
 
@@ -200,7 +200,7 @@ namespace PubComp.NoSql.AdaptorTests
             double total1, total2;
             PrepareReductionData(id1, id2, numberOfTransactions, out total1, out total2);
 
-            using (var context = getMockContext() as MockMongoDbContext)
+            using (var context = getTestContext() as MockMongoDbContext)
             {
                 context.UpdateIndexes(true);
 
@@ -260,7 +260,7 @@ namespace PubComp.NoSql.AdaptorTests
             double total1, total2;
             PrepareReductionData(id1, id2, numberOfTransactions, out total1, out total2);
 
-            using (var context = getMockContext() as MockMongoDbContext)
+            using (var context = getTestContext() as MockMongoDbContext)
             {
                 context.UpdateIndexes(true);
 
@@ -323,7 +323,7 @@ namespace PubComp.NoSql.AdaptorTests
             double total1, total2;
             PrepareReductionData(id1, id2, numberOfTransactions, out total1, out total2);
 
-            using (var context = getMockContext() as MockMongoDbContext)
+            using (var context = getTestContext() as MockMongoDbContext)
             {
                 context.UpdateIndexes(true);
 
@@ -379,7 +379,7 @@ namespace PubComp.NoSql.AdaptorTests
             double total1, total2;
             PrepareReductionData(id1, id2, numberOfTransactions, out total1, out total2);
 
-            using (var context = getMockContext() as MockMongoDbContext)
+            using (var context = getTestContext() as MockMongoDbContext)
             {
                 context.UpdateIndexes(true);
 
@@ -454,7 +454,7 @@ namespace PubComp.NoSql.AdaptorTests
             double total1, total2;
             PrepareReductionData(id1, id2, numberOfTransactions, out total1, out total2);
 
-            using (var context = getMockContext() as MockMongoDbContext)
+            using (var context = getTestContext() as MockMongoDbContext)
             {
                 context.UpdateIndexes(true);
 
@@ -557,7 +557,7 @@ namespace PubComp.NoSql.AdaptorTests
         {
             var id = Guid.NewGuid();
 
-            using (var context = getMockContext())
+            using (var context = getTestContext())
             {
                 var set = context.EntitiesForUpdates;
 
@@ -577,7 +577,7 @@ namespace PubComp.NoSql.AdaptorTests
                 set.Add(o1);
             }
 
-            using (var context = getMockContext())
+            using (var context = getTestContext())
             {
                 var set = context.EntitiesForUpdates as MongoDbContext.EntitySet<Guid, EntityForUpdates>;
 
@@ -601,7 +601,7 @@ namespace PubComp.NoSql.AdaptorTests
                 set.UpdateField(o2, "Inners");
             }
 
-            using (var context = getMockContext())
+            using (var context = getTestContext())
             {
                 var set = context.EntitiesForUpdates;
 
@@ -681,6 +681,38 @@ namespace PubComp.NoSql.AdaptorTests
             //Assert.IsFalse(MongoDB.Bson.Serialization.BsonClassMap.IsClassMapRegistered(typeof(TypeF1.TypeG.TypeH)));
             //Assert.IsFalse(MongoDB.Bson.Serialization.BsonClassMap.IsClassMapRegistered(typeof(TypeF1.TypeI)));
             //Assert.IsFalse(MongoDB.Bson.Serialization.BsonClassMap.IsClassMapRegistered(typeof(TypeF1.TypeI.TypeJ)));
+        }
+
+        #endregion
+
+        #region Named EntitySets
+
+        [TestMethod]
+        public void TestNamedEntitySets()
+        {
+            using (var context = getTestContext())
+            {
+                var set1 = ((MongoDbContext)context).GetEntitySet<string, EntityWithString>("collection1");
+                ((MongoDbContext.EntitySet)set1).DeleteAll();
+
+                var set2 = ((MongoDbContext)context).GetEntitySet<string, EntityWithString>("collection2");
+                ((MongoDbContext.EntitySet)set2).DeleteAll();
+
+                set1.Add(new EntityWithString { Id = "id1", Name = "name1" });
+                set2.Add(new EntityWithString { Id = "id1", Name = "name2" });
+            }
+
+            using (var context = getTestContext())
+            {
+                var set1 = ((MongoDbContext)context).GetEntitySet<string, EntityWithString>("collection1");
+                var set2 = ((MongoDbContext)context).GetEntitySet<string, EntityWithString>("collection2");
+                var obj1 = set1.Get("id1");
+                var obj2 = set2.Get("id1");
+                Assert.IsNotNull(obj1);
+                Assert.IsNotNull(obj2);
+                Assert.AreEqual("name1", obj1.Name);
+                Assert.AreEqual("name2", obj2.Name);
+            }
         }
 
         #endregion

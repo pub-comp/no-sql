@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PubComp.NoSql.Core
 {
@@ -13,7 +10,8 @@ namespace PubComp.NoSql.Core
             get;
         }
 
-        IEntitySet<TKey, TEntity> GetEntitySet<TKey, TEntity>() where TEntity : class, IEntity<TKey>;
+        IEntitySet<TKey, TEntity> GetEntitySet<TKey, TEntity>()
+            where TEntity : class, IEntity<TKey>;
 
         IFileSet Files
         {
