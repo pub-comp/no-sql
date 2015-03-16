@@ -55,5 +55,8 @@
 2.3.5:
 	* MongoDb adaptor: Enable map-reduce without query (with null query) and without finalize function (with null finalize function)
 
+2.4.0:
+	* MongoDb adaptor: Exposed optional output DB name and input sort by for map-reduce + added optional dbName to Context.GetEntitySet()
+
 Upcoming features:
 Service layer including modify date, state, upsert, roles, rest (odata) queries and more

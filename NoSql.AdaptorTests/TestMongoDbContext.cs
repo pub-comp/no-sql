@@ -172,12 +172,135 @@ namespace PubComp.NoSql.AdaptorTests
 
                 IEnumerable<ReductionResult<Guid, AccountStatus>> reduction;
                 
-                var set = (MongoDbDriver.MongoDbContext.EntitySet<Guid, EntityForCalc>)context.EntitiesForCalc;
+                var set = (MongoDbContext.EntitySet<Guid, EntityForCalc>)context.EntitiesForCalc;
 
-                set.Reduce<ReductionResult<Guid, AccountStatus>>(
+                set.Reduce(
                     e => e.OwnerId == id1, map, reduce, finalize, true, out reduction, ReduceStoreMode.None);
 
                 var results = reduction.ToList();
+
+                Assert.AreEqual(1, results.Count);
+
+                Assert.AreEqual(id1, results[0].Id);
+
+                Assert.AreEqual(numberOfTransactions, results[0].value.NumberOfTransactions);
+                Assert.IsTrue(Math.Abs(total1 - 0.1 - results[0].value.Money) <= 1);
+            }
+        }
+
+        [TestMethod]
+        public void TestReductionWithSortInput()
+        {
+            // Note: The reduction failed when I attempted to use Decimal instead of Double
+
+            Guid id1 = Guid.NewGuid();
+            Guid id2 = Guid.NewGuid();
+
+            int numberOfTransactions = 1000;
+            double total1, total2;
+            PrepareReductionData(id1, id2, numberOfTransactions, out total1, out total2);
+
+            using (var context = getMockContext() as MockMongoDbContext)
+            {
+                context.UpdateIndexes(true);
+
+                // Select function for iterator
+                const string map =
+                    @"function() {
+                        var transaction = this;
+                        emit(transaction.OwnerId, { NumberOfTransactions: 1, Money: transaction.Money });
+                    }";
+
+                // Aggregation of values into a single result
+                const string reduce =
+                    @"function(key, values) {
+                        var result = { NumberOfTransactions: 0, Money: 0 }; // initial value
+                        values.forEach(function(value) { // aggregation function
+                            result.NumberOfTransactions += value.NumberOfTransactions;
+                            result.Money += value.Money;
+                        });
+                        return result;
+                    }";
+
+                // Enables normalizing result e.g. converting sum into average
+                const string finalize =
+                    @"function(key, value){
+                        value.Money = value.Money - 0.1; // Usage fees
+                        return value;
+                    }";
+
+                IEnumerable<ReductionResult<Guid, AccountStatus>> reduction;
+
+                var set = (MongoDbContext.EntitySet<Guid, EntityForCalc>)context.EntitiesForCalc;
+
+                set.Reduce(
+                    e => e.OwnerId == id1, map, reduce, finalize, true, out reduction,
+                    ReduceStoreMode.None, sortByExpression: e => e.OwnerId);
+
+                var results = reduction.ToList();
+
+                Assert.AreEqual(1, results.Count);
+
+                Assert.AreEqual(id1, results[0].Id);
+
+                Assert.AreEqual(numberOfTransactions, results[0].value.NumberOfTransactions);
+                Assert.IsTrue(Math.Abs(total1 - 0.1 - results[0].value.Money) <= 1);
+            }
+        }
+
+        [TestMethod]
+        public void TestReductionToDifferentDb()
+        {
+            // Note: The reduction failed when I attempted to use Decimal instead of Double
+
+            Guid id1 = Guid.NewGuid();
+            Guid id2 = Guid.NewGuid();
+
+            int numberOfTransactions = 1000;
+            double total1, total2;
+            PrepareReductionData(id1, id2, numberOfTransactions, out total1, out total2);
+
+            using (var context = getMockContext() as MockMongoDbContext)
+            {
+                context.UpdateIndexes(true);
+
+                // Select function for iterator
+                const string map =
+                    @"function() {
+                        var transaction = this;
+                        emit(transaction.OwnerId, { NumberOfTransactions: 1, Money: transaction.Money });
+                    }";
+
+                // Aggregation of values into a single result
+                const string reduce =
+                    @"function(key, values) {
+                        var result = { NumberOfTransactions: 0, Money: 0 }; // initial value
+                        values.forEach(function(value) { // aggregation function
+                            result.NumberOfTransactions += value.NumberOfTransactions;
+                            result.Money += value.Money;
+                        });
+                        return result;
+                    }";
+
+                // Enables normalizing result e.g. converting sum into average
+                const string finalize =
+                    @"function(key, value){
+                        value.Money = value.Money - 0.1; // Usage fees
+                        return value;
+                    }";
+
+                IEnumerable<ReductionResult<Guid, AccountStatus>> reduction;
+
+                var set = (MongoDbContext.EntitySet<Guid, EntityForCalc>)context.EntitiesForCalc;
+
+                set.Reduce(
+                    e => e.OwnerId == id1, map, reduce, finalize, true, out reduction,
+                    ReduceStoreMode.NewSet, resultSet: "Results1", resultDbName: "ResultsDb1");
+
+                var resultsSet = context.GetEntitySet<Guid, ReductionResult<Guid, AccountStatus>>(
+                    "ResultsDb1", "Results1");
+
+                var results = resultsSet.AsQueryable().ToList();
 
                 Assert.AreEqual(1, results.Count);
 
@@ -224,9 +347,9 @@ namespace PubComp.NoSql.AdaptorTests
 
                 IEnumerable<ReductionResult<Guid, AccountStatus>> reduction;
 
-                var set = (MongoDbDriver.MongoDbContext.EntitySet<Guid, EntityForCalc>)context.EntitiesForCalc;
+                var set = (MongoDbContext.EntitySet<Guid, EntityForCalc>)context.EntitiesForCalc;
 
-                set.Reduce<ReductionResult<Guid, AccountStatus>>(
+                set.Reduce(
                     null, map, reduce, null, true, out reduction, ReduceStoreMode.None);
 
                 var results = reduction.ToList();
@@ -295,15 +418,15 @@ namespace PubComp.NoSql.AdaptorTests
 
                 IEnumerable<ReductionResult<Guid, AccountStatusWithName>> reduction;
 
-                var set1 = (MongoDbDriver.MongoDbContext.EntitySet<Guid, EntityWithGuid>)context.EntitiesWithGuid;
+                var set1 = (MongoDbContext.EntitySet<Guid, EntityWithGuid>)context.EntitiesWithGuid;
 
-                set1.Reduce<ReductionResult<Guid, AccountStatusWithName>>(
+                set1.Reduce(
                     e => e.Id == id1, map1, reduce, finalize, false, out reduction,
                     ReduceStoreMode.NewSet, "reductionResults");
 
-                var set2 = (MongoDbDriver.MongoDbContext.EntitySet<Guid, EntityForCalc>)context.EntitiesForCalc;
+                var set2 = (MongoDbContext.EntitySet<Guid, EntityForCalc>)context.EntitiesForCalc;
 
-                set2.Reduce<ReductionResult<Guid, AccountStatusWithName>>(
+                set2.Reduce(
                     e => e.OwnerId == id1, map2, reduce, finalize, true, out reduction,
                     ReduceStoreMode.Combine, "reductionResults");
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -16,6 +17,8 @@ namespace PubComp.NoSql.MongoDbDriver
         private readonly IEnumerable<IEntitySet> entitySets;
         private readonly IFileSet fileSet;
         private readonly string db;
+        private static readonly ConcurrentDictionary<String, MongoDB.Bson.Serialization.BsonClassMap> Mappers
+            = new ConcurrentDictionary<string, MongoDB.Bson.Serialization.BsonClassMap>();
 
         public MongoDbContext(MongoDbConnectionInfo connectionInfo)
             : this(connectionInfo.ConnectionString, connectionInfo.Db)
@@ -28,6 +31,7 @@ namespace PubComp.NoSql.MongoDbDriver
 
             this.db = dbName;
             this.innerContext = new MongoDB.Driver.MongoClient(connectionString);
+            // ReSharper disable once LocalVariableHidesMember
             var entitySets = new List<IEntitySet>();
 
             var entitySetProperties = concreteType.GetProperties()
@@ -41,7 +45,7 @@ namespace PubComp.NoSql.MongoDbDriver
 
                 var createEntitySetMethod = typeof(EntitySet<,>).MakeGenericType(new[] { keyType, entityType })
                     .GetConstructor(
-                        System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic,
+                        BindingFlags.Instance | BindingFlags.NonPublic,
                         null, new[] { typeof(MongoDbContext), typeof(string) }, null);
 
                 var entitySet = createEntitySetMethod.Invoke(new object[] { this, this.db });
@@ -81,9 +85,10 @@ namespace PubComp.NoSql.MongoDbDriver
 
                 var createFileSetMethod = typeof(FileSet<>).MakeGenericType(new[] { keyType })
                     .GetConstructor(
-                    System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic,
+                    BindingFlags.Instance | BindingFlags.NonPublic,
                     null, new[] { typeof(MongoDbContext), typeof(string) }, null);
 
+                // ReSharper disable once LocalVariableHidesMember
                 var fileSet = createFileSetMethod.Invoke(new object[] { this, this.db });
                 fileSetProperty.SetValue(this, fileSet, new object[] { });
 
@@ -130,7 +135,7 @@ namespace PubComp.NoSql.MongoDbDriver
         public void DeleteAll()
         {
             foreach (var entitySet in this.entitySets)
-                (entitySet as EntitySet).DeleteAll();
+                ((EntitySet)entitySet).DeleteAll();
         }
 
 #if DEBUG
@@ -144,8 +149,8 @@ namespace PubComp.NoSql.MongoDbDriver
 #endif
         public void UpdateIndexes(bool removeStaleIndexes)
         {
-            foreach (var set in entitySets)
-                (set as EntitySet).UpdateIndexes(removeStaleIndexes);
+            foreach (var entitySet in entitySets)
+                ((EntitySet)entitySet).UpdateIndexes(removeStaleIndexes);
         }
 
         internal MongoDB.Driver.MongoClient InnerContext
@@ -162,6 +167,28 @@ namespace PubComp.NoSql.MongoDbDriver
             return result;
         }
 
+        private static MongoDB.Driver.IMongoQuery ToMongoQuery<TEntity>(
+            Expression<Func<TEntity, bool>> queryExpression)
+        {
+            var query = (queryExpression != null)
+                ? new MongoDB.Driver.Builders.QueryBuilder<TEntity>().Where(queryExpression)
+                : null;
+
+            return query;
+        }
+
+        private static MongoDB.Driver.IMongoSortBy ToMongoSortBy<TEntity>(
+            Expression<Func<TEntity, object>> sortExpression, bool ascending = true)
+        {
+            var sortBy = (sortExpression != null)
+                ? ((ascending)
+                    ? new MongoDB.Driver.Builders.SortByBuilder<TEntity>().Ascending(sortExpression)
+                    : new MongoDB.Driver.Builders.SortByBuilder<TEntity>().Descending(sortExpression))
+                : null;
+
+            return sortBy;
+        }
+
         public IEntitySet<TKey, TEntity> GetEntitySet<TKey, TEntity>(string collectionName)
             where TEntity : class, IEntity<TKey>, new()
         {
@@ -169,12 +196,19 @@ namespace PubComp.NoSql.MongoDbDriver
             return entitySet;
         }
 
+        public IEntitySet<TKey, TEntity> GetEntitySet<TKey, TEntity>(string dbName, string collectionName)
+            where TEntity : class, IEntity<TKey>, new()
+        {
+            var entitySet = new EntitySet<TKey, TEntity>(this, dbName, collectionName);
+            return entitySet;
+        }
+
         private static void MapReduceInner<TResult>(
             MongoDB.Driver.MongoCollection collection,
-            MongoDB.Driver.IMongoQuery query,
+            MongoDB.Driver.IMongoQuery query, MongoDB.Driver.IMongoSortBy sortBy,
             string mapFunction, string reduceFunction, string finalizeFunction,
             bool doGetResults, out IEnumerable<TResult> results,
-            ReduceStoreMode storeMode, string resultSet)
+            ReduceStoreMode storeMode, string resultSet, string resultDbName)
         {
             if (string.IsNullOrEmpty(resultSet))
                 storeMode = ReduceStoreMode.None;
@@ -202,58 +236,25 @@ namespace PubComp.NoSql.MongoDbDriver
                     break;
             }
 
-            MongoDB.Driver.MapReduceArgs args;
+            var args = new MongoDB.Driver.MapReduceArgs
+            {
+                MapFunction = mapFunction,
+                ReduceFunction = reduceFunction,
+                OutputMode = outputMode,
+                OutputCollectionName = outputCollectionName
+            };
 
             if (query != null)
-            {
-                if (finalizeFunction != null)
-                {
-                    args = new MongoDB.Driver.MapReduceArgs
-                    {
-                        Query = query,
-                        MapFunction = mapFunction,
-                        ReduceFunction = reduceFunction,
-                        FinalizeFunction = finalizeFunction,
-                        OutputMode = outputMode,
-                        OutputCollectionName = outputCollectionName
-                    };
-                }
-                else
-                {
-                    args = new MongoDB.Driver.MapReduceArgs
-                    {
-                        Query = query,
-                        MapFunction = mapFunction,
-                        ReduceFunction = reduceFunction,
-                        OutputMode = outputMode,
-                        OutputCollectionName = outputCollectionName
-                    };
-                }
-            }
-            else
-            {
-                if (finalizeFunction != null)
-                {
-                    args = new MongoDB.Driver.MapReduceArgs
-                    {
-                        MapFunction = mapFunction,
-                        ReduceFunction = reduceFunction,
-                        FinalizeFunction = finalizeFunction,
-                        OutputMode = outputMode,
-                        OutputCollectionName = outputCollectionName
-                    };
-                }
-                else
-                {
-                    args = new MongoDB.Driver.MapReduceArgs
-                    {
-                        MapFunction = mapFunction,
-                        ReduceFunction = reduceFunction,
-                        OutputMode = outputMode,
-                        OutputCollectionName = outputCollectionName
-                    };
-                }
-            }
+                args.Query = query;
+
+            if (finalizeFunction != null)
+                args.FinalizeFunction = finalizeFunction;
+
+            if (resultDbName != null)
+                args.OutputDatabaseName = resultDbName;
+
+            if (sortBy != null)
+                args.SortBy = sortBy;
 
             var reductionResults = collection.MapReduce(args);
 
@@ -269,18 +270,19 @@ namespace PubComp.NoSql.MongoDbDriver
             Expression<Func<TEntity, bool>> queryExpression,
             string mapFunction, string reduceFunction, string finalizeFunction,
             bool doGetResults, out IEnumerable<TResult> results,
-            ReduceStoreMode storeMode = ReduceStoreMode.None, string resultSet = null)
+            ReduceStoreMode storeMode = ReduceStoreMode.None,
+            string resultSet = null, string resultDbName = null,
+            Expression<Func<TEntity, Object>> sortByExpression = null)
         {
             var collection = this.innerContext.GetServer().GetDatabase(db).GetCollection<TEntity>(collectionName);
 
-            var query = (queryExpression != null)
-                ? new MongoDB.Driver.Builders.QueryBuilder<TEntity>().Where(queryExpression)
-                : null;
+            var query = ToMongoQuery(queryExpression);
+            var sortBy = ToMongoSortBy(sortByExpression);
 
-            MapReduceInner<TResult>(
-                collection, query,
+            MapReduceInner(
+                collection, query, sortBy,
                 mapFunction, reduceFunction, finalizeFunction,
-                doGetResults, out results, storeMode, resultSet);
+                doGetResults, out results, storeMode, resultSet, resultDbName);
         }
 
         public abstract class EntitySet
@@ -293,6 +295,7 @@ namespace PubComp.NoSql.MongoDbDriver
         public class EntitySet<TKey, TEntity> : EntitySet, IEntitySet<TKey, TEntity>
             where TEntity : class, IEntity<TKey>
         {
+            // ReSharper disable once StaticMemberInGenericType
             protected static readonly List<PropertyInfo> UpdatableProperties;
             protected readonly MongoDbContext parent;
             protected readonly MongoDB.Driver.MongoCollection<TEntity> innerSet;
@@ -304,11 +307,6 @@ namespace PubComp.NoSql.MongoDbDriver
 
                 var mapper = GetMapper(typeof(TEntity));
 
-                var mappers = new Dictionary<String, MongoDB.Bson.Serialization.BsonClassMap>
-                {
-                    { typeof(TEntity).FullName, mapper }
-                };
-
                 var properties = ContextUtils.GetProperiesOfTypeAndSubTypes(typeof(TEntity));
 
                 foreach (var prop in properties)
@@ -316,12 +314,8 @@ namespace PubComp.NoSql.MongoDbDriver
                     if (prop.Name == "Id" || !prop.CanRead || !prop.CanWrite || prop.GetIndexParameters().Any())
                         continue;
 
-                    MongoDB.Bson.Serialization.BsonClassMap currentMapper;
-                    if (!mappers.TryGetValue(prop.DeclaringType.FullName, out currentMapper))
-                    {
-                        currentMapper = GetMapper(prop.DeclaringType);
-                        mappers.Add(prop.DeclaringType.FullName, currentMapper);
-                    }
+                    var propType = prop.DeclaringType;
+                    var currentMapper = GetMapper(propType);
 
                     if (prop.GetCustomAttributes(typeof(DbIgnoreAttribute), true).Any()
                         || prop.GetCustomAttributes(typeof(NavigationAttribute), true).Any())
@@ -332,7 +326,7 @@ namespace PubComp.NoSql.MongoDbDriver
 
                     if (prop.PropertyType == typeof(DateTime) || prop.PropertyType == typeof(DateTime?))
                     {
-                        var dateOnly = prop.GetCustomAttributes(typeof(DateOnlyAttribute), true).Any();
+                        //var dateOnly = prop.GetCustomAttributes(typeof(DateOnlyAttribute), true).Any();
 
                         currentMapper.GetMemberMap(prop.Name)
                             .SetSerializationOptions(
@@ -349,6 +343,11 @@ namespace PubComp.NoSql.MongoDbDriver
 
             private static MongoDB.Bson.Serialization.BsonClassMap GetMapper(Type type)
             {
+                return Mappers.GetOrAdd(type.FullName, k => GetMapperInner(type));
+            }
+
+            private static MongoDB.Bson.Serialization.BsonClassMap GetMapperInner(Type type)
+            {
                 var genericMethod = typeof(EntitySet<TKey, TEntity>).GetMethod("GenericGetMapper",
                     BindingFlags.NonPublic | BindingFlags.Static);
 
@@ -360,10 +359,20 @@ namespace PubComp.NoSql.MongoDbDriver
             // ReSharper disable once UnusedMember.Local
             private static MongoDB.Bson.Serialization.BsonClassMap GenericGetMapper<T>()
             {
-                var mapper = MongoDB.Bson.Serialization.BsonClassMap.RegisterClassMap<T>(cm =>
+                MongoDB.Bson.Serialization.BsonClassMap mapper;
+
+                if (!MongoDB.Bson.Serialization.BsonClassMap.IsClassMapRegistered(typeof(T)))
+                {
+                    mapper = MongoDB.Bson.Serialization.BsonClassMap.RegisterClassMap<T>(cm =>
                     {
                         cm.AutoMap();
                     });
+                }
+                else
+                {
+                    mapper = MongoDB.Bson.Serialization.BsonClassMap.GetRegisteredClassMaps()
+                        .First(cm => cm.ClassType == typeof(T));
+                }
 
                 return mapper;
             }
@@ -647,7 +656,7 @@ namespace PubComp.NoSql.MongoDbDriver
                     if (MongoDB.Bson.BsonTypeMapper.TryMapToBsonValue(objValue, out value))
                         return value;
                 }
-                catch (System.ArgumentException)
+                catch (ArgumentException)
                 {
                     value = null;
                 }
@@ -943,17 +952,18 @@ namespace PubComp.NoSql.MongoDbDriver
                 Expression<Func<TEntity, bool>> queryExpression,
                 string mapFunction, string reduceFunction, string finalizeFunction,
                 bool doGetResults, out IEnumerable<TResult> results,
-                ReduceStoreMode storeMode = ReduceStoreMode.None, string resultSet = null)
+                ReduceStoreMode storeMode = ReduceStoreMode.None,
+                string resultSet = null, string resultDbName = null,
+                Expression<Func<TEntity, Object>> sortByExpression = null)
                 where TResult : new()
             {
-                var query = (queryExpression != null)
-                    ? new MongoDB.Driver.Builders.QueryBuilder<TEntity>().Where(queryExpression)
-                    : null;
+                var query = ToMongoQuery(queryExpression);
+                var sortBy = ToMongoSortBy(sortByExpression);
 
-                MapReduceInner<TResult>(
-                    this.innerSet, query,
+                MapReduceInner(
+                    this.innerSet, query, sortBy,
                     mapFunction, reduceFunction, finalizeFunction,
-                    doGetResults, out results, storeMode, resultSet);
+                    doGetResults, out results, storeMode, resultSet, resultDbName);
             }
 
             #region Navigation
@@ -965,7 +975,7 @@ namespace PubComp.NoSql.MongoDbDriver
 
             public void SaveNavigation(IEnumerable<TEntity> entities, IEnumerable<string> propertyNames)
             {
-                ContextUtils.SaveNavigation<TKey, TEntity>(parent, this, entities, propertyNames);
+                ContextUtils.SaveNavigation(parent, this, entities, propertyNames);
             }
 
             #endregion
@@ -988,14 +998,15 @@ namespace PubComp.NoSql.MongoDbDriver
 
             private void CheckIfCanModify(IEnumerable<TEntity> entities)
             {
-                if (this.OnModifying == null)
+                var onModifying = this.OnModifying;
+                if (onModifying == null)
                     return;
 
                 bool canAccess = true;
                 foreach (var entity in entities)
                 {
                     var args = new AccessEventArgs<TEntity>(entity);
-                    this.OnModifying(this, args);
+                    onModifying(this, args);
                     if (!args.CanAccess)
                     {
                         canAccess = false;
@@ -1010,11 +1021,13 @@ namespace PubComp.NoSql.MongoDbDriver
             private void CheckIfCanModify(TEntity entity, out bool canAccess)
             {
                 canAccess = true;
-                if (this.OnModifying == null)
+                var onModifying = this.OnModifying;
+
+                if (onModifying == null)
                     return;
 
                 var args = new AccessEventArgs<TEntity>(entity);
-                this.OnModifying(this, args);
+                onModifying(this, args);
                 canAccess = args.CanAccess;
             }
 
@@ -1028,14 +1041,15 @@ namespace PubComp.NoSql.MongoDbDriver
 
             private void CheckIfCanDelete(IEnumerable<TEntity> entities)
             {
-                if (this.OnDeleting == null)
+                var onDeleting = this.OnDeleting;
+                if (onDeleting == null)
                     return;
 
                 bool canAccess = true;
                 foreach (var entity in entities)
                 {
                     var args = new AccessEventArgs<TEntity>(entity);
-                    this.OnDeleting(this, args);
+                    onDeleting(this, args);
                     if (!args.CanAccess)
                     {
                         canAccess = false;
@@ -1050,21 +1064,23 @@ namespace PubComp.NoSql.MongoDbDriver
             private void CheckIfCanDelete(TEntity entity, out bool canAccess)
             {
                 canAccess = true;
-                if (this.OnDeleting == null)
+                var onDeleting = this.OnDeleting;
+                if (onDeleting == null)
                     return;
 
                 var args = new AccessEventArgs<TEntity>(entity);
-                this.OnDeleting(this, args);
+                onDeleting(this, args);
                 canAccess = args.CanAccess;
             }
 
             private TEntity ReturnAfterCheck(TEntity entity)
             {
-                if (this.OnGetting == null)
+                var onGetting = this.OnGetting;
+                if (onGetting == null)
                     return entity;
 
                 var args = new AccessEventArgs<TEntity>(entity);
-                this.OnGetting(this, args);
+                onGetting(this, args);
                 if (!args.CanAccess)
                     throw new DalAccessRestrictionFailure("Modify operating for this entity is forbidden.");
 
