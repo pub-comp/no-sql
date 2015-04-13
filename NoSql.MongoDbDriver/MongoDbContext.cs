@@ -274,7 +274,7 @@ namespace PubComp.NoSql.MongoDbDriver
             string resultSet = null, string resultDbName = null,
             Expression<Func<TEntity, Object>> sortByExpression = null)
         {
-            var collection = this.innerContext.GetServer().GetDatabase(db).GetCollection<TEntity>(collectionName);
+            var collection = MongoDB.Driver.MongoClientExtensions.GetServer(this.innerContext).GetDatabase(db).GetCollection<TEntity>(collectionName);
 
             var query = ToMongoQuery(queryExpression);
             var sortBy = ToMongoSortBy(sortByExpression);
@@ -324,17 +324,22 @@ namespace PubComp.NoSql.MongoDbDriver
                         continue;
                     }
 
-                    if (prop.PropertyType == typeof(DateTime) || prop.PropertyType == typeof(DateTime?))
+                    if (prop.PropertyType == typeof(DateTime))
                     {
                         //var dateOnly = prop.GetCustomAttributes(typeof(DateOnlyAttribute), true).Any();
 
-                        currentMapper.GetMemberMap(prop.Name)
-                            .SetSerializationOptions(
-                                new MongoDB.Bson.Serialization.Options.DateTimeSerializationOptions
-                                {
-                                    Kind = DateTimeKind.Local,
-                                    Representation = MongoDB.Bson.BsonType.DateTime,
-                                });
+                        currentMapper.GetMemberMap(prop.Name).SetSerializer(
+                            new MongoDB.Bson.Serialization.Serializers.DateTimeSerializer(
+                                DateTimeKind.Local));
+                    }
+                    else if (prop.PropertyType == typeof(DateTime?))
+                    {
+                        //var dateOnly = prop.GetCustomAttributes(typeof(DateOnlyAttribute), true).Any();
+
+                        currentMapper.GetMemberMap(prop.Name).SetSerializer(
+                            new MongoDB.Bson.Serialization.Serializers.NullableSerializer<DateTime>(
+                                new MongoDB.Bson.Serialization.Serializers.DateTimeSerializer(
+                                    DateTimeKind.Local)));
                     }
 
                     UpdatableProperties.Add(prop);
@@ -380,7 +385,7 @@ namespace PubComp.NoSql.MongoDbDriver
             internal EntitySet(MongoDbContext parent, string db)
             {
                 this.parent = parent;
-                this.innerSet = parent.innerContext.GetServer().GetDatabase(db).GetCollection<TEntity>(
+                this.innerSet = MongoDB.Driver.MongoClientExtensions.GetServer(parent.innerContext).GetDatabase(db).GetCollection<TEntity>(
                     typeof(TEntity).Name.ToLower());
                 this.parentType = parent.GetType();
             }
@@ -388,7 +393,7 @@ namespace PubComp.NoSql.MongoDbDriver
             internal EntitySet(MongoDbContext parent, string db, string collectionName)
             {
                 this.parent = parent;
-                this.innerSet = parent.innerContext.GetServer().GetDatabase(db).GetCollection<TEntity>(
+                this.innerSet = MongoDB.Driver.MongoClientExtensions.GetServer(parent.innerContext).GetDatabase(db).GetCollection<TEntity>(
                     collectionName);
                 this.parentType = parent.GetType();
             }
@@ -1118,7 +1123,7 @@ namespace PubComp.NoSql.MongoDbDriver
 
             internal FileSet(MongoDbContext parent, string db)
             {
-                this.innerFS = parent.innerContext.GetServer().GetDatabase(db).GridFS;
+                this.innerFS = MongoDB.Driver.MongoClientExtensions.GetServer(parent.innerContext).GetDatabase(db).GridFS;
             }
 
             public Type KeyType

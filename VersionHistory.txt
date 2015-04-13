@@ -58,5 +58,8 @@
 2.4.0:
 	* MongoDb adaptor: Exposed optional output DB name and input sort by for map-reduce + added optional dbName to Context.GetEntitySet()
 
+2.5.0:
+	* MongoDb adaptor: Replaced MongoDB C# client v1.10 with v2.0-legacy API (required some code changes)
+
 Upcoming features:
 Service layer including modify date, state, upsert, roles, rest (odata) queries and more
