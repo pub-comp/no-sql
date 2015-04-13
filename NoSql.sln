@@ -15,6 +15,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NoSql.ServiceStackRedis", "
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{14ED39D8-5103-49E5-8643-28BABB9716C7}"
 	ProjectSection(SolutionItems) = preProject
+		.tfignore = .tfignore
 		Readme.txt = Readme.txt
 		VersionHistory.txt = VersionHistory.txt
 		VersionInfo.cs = VersionInfo.cs
