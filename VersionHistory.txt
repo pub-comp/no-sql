@@ -60,6 +60,8 @@
 
 2.5.0:
 	* MongoDb adaptor: Replaced MongoDB C# client v1.10 with v2.0-legacy API (required some code changes)
-
+	Will not move to new API until v2.1 or above due to limitations with new API
+	(No LINQ support - https://groups.google.com/forum/#!searchin/mongodb-user/iqueryable/mongodb-user/fyRzbJNl03M/M7Fh-U1qVUQJ)
+	
 Upcoming features:
 Service layer including modify date, state, upsert, roles, rest (odata) queries and more
