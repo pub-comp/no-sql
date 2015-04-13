@@ -141,7 +141,7 @@ namespace PubComp.NoSql.MongoDbDriver
 #if DEBUG
         public void SuperDeleteAll()
         {
-            var database = this.innerContext.GetServer().GetDatabase(this.db);
+            var database = MongoDB.Driver.MongoClientExtensions.GetServer(this.innerContext).GetDatabase(this.db);
             var sets = database.GetCollectionNames();
             foreach (var set in sets)
                 database.GetCollection(set).RemoveAll();
