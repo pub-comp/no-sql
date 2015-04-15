@@ -6,7 +6,6 @@ using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using MongoDB.Driver.Linq;
 using PubComp.NoSql.Core;
 
 namespace PubComp.NoSql.MongoDbDriver
@@ -467,7 +466,7 @@ namespace PubComp.NoSql.MongoDbDriver
 
             public IQueryable<TEntity> AsQueryable()
             {
-                return this.innerSet.AsQueryable();
+                return MongoDB.Driver.Linq.LinqExtensionMethods.AsQueryable(this.innerSet);
             }
 
             IQueryable<IEntity> IEntitySet.AsQueryable()
@@ -610,7 +609,7 @@ namespace PubComp.NoSql.MongoDbDriver
                 if (!keys.Any())
                     return new TEntity[0];
 
-                return Filter(this.innerSet.AsQueryable().Where(entity => keys.Contains(entity.Id)));
+                return Filter(AsQueryable().Where(entity => keys.Contains(entity.Id)));
             }
 
             IEnumerable<IEntity> IEntitySet.Get(IEnumerable keys)
@@ -645,7 +644,7 @@ namespace PubComp.NoSql.MongoDbDriver
                 return MongoDB.Driver.Builders.Query<TEntity>.EQ(entity => entity.Id, key);
             }
 
-            private MongoDB.Driver.IMongoSortBy GetSortById(TKey key)
+            private MongoDB.Driver.IMongoSortBy GetSortById()
             {
                 return MongoDB.Driver.Builders.SortBy<TEntity>.Ascending(EntitySet => EntitySet.Id);
             }
@@ -732,7 +731,7 @@ namespace PubComp.NoSql.MongoDbDriver
                     new MongoDB.Driver.FindAndModifyArgs
                     {
                         Query = GetQueryById(entity.Id),
-                        SortBy = GetSortById(entity.Id),
+                        SortBy = GetSortById(),
                         Update = GetUpdateAllButId(entity)
                     });
             }
@@ -753,7 +752,7 @@ namespace PubComp.NoSql.MongoDbDriver
                     new MongoDB.Driver.FindAndModifyArgs
                     {
                         Query = GetQueryById(entity.Id),
-                        SortBy = GetSortById(entity.Id),
+                        SortBy = GetSortById(),
                         Update = GetUpdateField(entity, fieldName)
                     });
             }
@@ -770,7 +769,7 @@ namespace PubComp.NoSql.MongoDbDriver
                     new MongoDB.Driver.FindAndModifyArgs
                     {
                         Query = GetQueryById(key),
-                        SortBy = GetSortById(key),
+                        SortBy = GetSortById(),
                         Update = GetIncrementField(fieldName, increment)
                     });
             }
