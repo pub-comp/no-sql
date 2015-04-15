@@ -48,6 +48,7 @@
     </Compile>
     <Compile Include="ContextUtils.cs" />
     <Compile Include="DalAccessRestrictionFailure.cs" />
+    <Compile Include="DalConcurrencyFailure.cs" />
     <Compile Include="DalFailure.cs" />
     <Compile Include="DalItemNotFoundFailure.cs" />
     <Compile Include="DalNullIdFailure.cs" />

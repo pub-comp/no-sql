@@ -63,6 +63,11 @@
 	Will not move to new API until v2.1 or above due to limitations with new API
 	(No LINQ support - https://groups.google.com/forum/#!searchin/mongodb-user/iqueryable/mongodb-user/fyRzbJNl03M/M7Fh-U1qVUQJ)
 	* Added support for multiple hosts and for login DB to connection info
+
+3.0.0:
+	* Core: Changed exceptions members to enable storing multiple entities instead of one
+	* MongoDb adaptor: Changed write operations (e.g. add, update) to check response and throw exception on failure,
+	this enables safe usage of replica sets
 	
 Upcoming features:
 Service layer including modify date, state, upsert, roles, rest (odata) queries and more

@@ -1,14 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PubComp.NoSql.Core
 {
     public class DalFailure : Failure
     {
-        public IEntity Entity
+        public IEnumerable<IEntity> Entities
         {
             private set;
             get;
@@ -21,10 +18,26 @@ namespace PubComp.NoSql.Core
         }
 
         public DalFailure(
-            String message = null, IEntity entity = null, DalOperation operation = DalOperation.Undefined, Exception innerException = null)
+            String message = null, DalOperation operation = DalOperation.Undefined, Exception innerException = null)
             : base(message, innerException)
         {
-            this.Entity = entity;
+            this.Entities = null;
+            this.Operation = operation;
+        }
+
+        public DalFailure(
+            String message, IEnumerable<IEntity> entities, DalOperation operation = DalOperation.Undefined, Exception innerException = null)
+            : base(message, innerException)
+        {
+            this.Entities = entities;
+            this.Operation = operation;
+        }
+
+        public DalFailure(
+            String message, IEntity entity, DalOperation operation = DalOperation.Undefined, Exception innerException = null)
+            : base(message, innerException)
+        {
+            this.Entities = entity != null ? new [] { entity } : null;
             this.Operation = operation;
         }
     }

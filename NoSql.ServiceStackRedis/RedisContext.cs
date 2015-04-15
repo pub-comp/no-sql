@@ -290,7 +290,7 @@ namespace PubComp.NoSql.ServiceStackRedis
             public void Add(IEnumerable<TEntity> entities)
             {
                 if (entities.Any(entity => EqualityComparer<TKey>.Default.Equals(entity.Id, default(TKey))))
-                    throw new DalNullIdFailure("Could not add entities - entity.Id is undefined for at least one entity.", null, DalOperation.Add);
+                    throw new DalNullIdFailure("Could not add entities - entity.Id is undefined for at least one entity.", default(TEntity), DalOperation.Add);
 
                 CheckIfCanModify(entities);
 
@@ -418,7 +418,7 @@ namespace PubComp.NoSql.ServiceStackRedis
             public void Delete(TKey key)
             {
                 if (EqualityComparer<TKey>.Default.Equals(key, default(TKey)))
-                    throw new DalNullIdFailure("Could not delete entity - Id was null.", null, DalOperation.Delete);
+                    throw new DalNullIdFailure("Could not delete entity - Id was null.", default(TEntity), DalOperation.Delete);
 
                 if (OnDeleting != null)
                 {
@@ -432,7 +432,7 @@ namespace PubComp.NoSql.ServiceStackRedis
             private void DeleteInner(TKey key)
             {
                 if (EqualityComparer<TKey>.Default.Equals(key, default(TKey)))
-                    throw new DalNullIdFailure("Could not delete entity - Id was null.", null, DalOperation.Delete);
+                    throw new DalNullIdFailure("Could not delete entity - Id was null.", default(TEntity), DalOperation.Delete);
 
                 this.innerSet.DeleteById(key);
             }
@@ -448,7 +448,7 @@ namespace PubComp.NoSql.ServiceStackRedis
             public void Delete(IEnumerable<TKey> keys)
             {
                 if (keys.Any(key => EqualityComparer<TKey>.Default.Equals(key, default(TKey))))
-                    throw new DalNullIdFailure("Could not delete entities - at least one provided Id was null.", null, DalOperation.Delete);
+                    throw new DalNullIdFailure("Could not delete entities - at least one provided Id was null.", default(TEntity), DalOperation.Delete);
 
                 if (OnDeleting != null)
                 {
@@ -462,7 +462,7 @@ namespace PubComp.NoSql.ServiceStackRedis
             private void DeleteInner(IEnumerable<TKey> keys)
             {
                 if (keys.Any(key => EqualityComparer<TKey>.Default.Equals(key, default(TKey))))
-                    throw new DalNullIdFailure("Could not delete entities - at least one provided Id was null.", null, DalOperation.Delete);
+                    throw new DalNullIdFailure("Could not delete entities - at least one provided Id was null.", default(TEntity), DalOperation.Delete);
 
                 if (OnDeleting != null)
                 {

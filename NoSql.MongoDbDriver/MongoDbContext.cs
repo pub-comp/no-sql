@@ -504,7 +504,9 @@ namespace PubComp.NoSql.MongoDbDriver
 
                 CheckIfCanModify(entity);
 
-                this.innerSet.Save(entity);
+                var result = this.innerSet.Save(entity);
+                if (result.HasLastErrorMessage)
+                    throw new DalConcurrencyFailure(result.LastErrorMessage, entity, DalOperation.Add);
             }
 
             void IEntitySet.AddOrUpdate(IEntity entity)
@@ -546,6 +548,8 @@ namespace PubComp.NoSql.MongoDbDriver
                 CheckIfCanModify(entity);
 
                 var result = this.innerSet.Insert(entity);
+                if (result.HasLastErrorMessage)
+                    throw new DalConcurrencyFailure(result.LastErrorMessage, entity, DalOperation.Add);
             }
 
             void IEntitySet.Add(IEntity entity)
@@ -562,11 +566,17 @@ namespace PubComp.NoSql.MongoDbDriver
                     return;
 
                 if (entities.Any(entity => EqualityComparer<TKey>.Default.Equals(entity.Id, default(TKey))))
-                    throw new DalNullIdFailure("Could not add entities - entity.Id is undefined for at least one entity.", null, DalOperation.Add);
+                    throw new DalNullIdFailure("Could not add entities - entity.Id is undefined for at least one entity.", default(TEntity), DalOperation.Add);
 
                 CheckIfCanModify(entities);
 
-                this.innerSet.InsertBatch(entities);
+                var results = this.innerSet.InsertBatch(entities);
+                var hasError = results.Select(r => r.HasLastErrorMessage).Aggregate((a, b) => a || b);
+                if (hasError)
+                {
+                    var errors = string.Join(Environment.NewLine, results.Select(r => r.LastErrorMessage));
+                    throw new DalConcurrencyFailure(errors, entities, DalOperation.Add);
+                }
             }
 
             void IEntitySet.Add(IEnumerable<IEntity> entities)
@@ -703,7 +713,7 @@ namespace PubComp.NoSql.MongoDbDriver
                 var prop = UpdatableProperties.FirstOrDefault(p => p.Name == fieldName);
 
                 if (prop == null)
-                    throw new DalFailure("Field " + fieldName + " does not existing in collection");
+                    throw new DalFailure("Field " + fieldName + " does not exist in collection");
 
                 var objValue = prop.GetValue(entity, new object[] { });
                 var value = ToMongoBsonValue(objValue);
@@ -718,7 +728,7 @@ namespace PubComp.NoSql.MongoDbDriver
                 var prop = UpdatableProperties.FirstOrDefault(p => p.Name == fieldName);
 
                 if (prop == null)
-                    throw new DalFailure("Field " + fieldName + " does not existing in collection");
+                    throw new DalFailure("Field " + fieldName + " does not exist in collection");
 
                 var updateBuilder = MongoDB.Driver.Builders.Update.Inc(fieldName, increment);
 
@@ -727,13 +737,15 @@ namespace PubComp.NoSql.MongoDbDriver
 
             private void UpdateExisting(TEntity entity)
             {
-                this.innerSet.FindAndModify(
+                var result = this.innerSet.FindAndModify(
                     new MongoDB.Driver.FindAndModifyArgs
                     {
                         Query = GetQueryById(entity.Id),
                         SortBy = GetSortById(),
                         Update = GetUpdateAllButId(entity)
                     });
+                if (result.ErrorMessage != null)
+                    throw new DalConcurrencyFailure(result.ErrorMessage, default(TEntity), DalOperation.Update);
             }
 
             public void Update(IEnumerable<TEntity> entities)
@@ -748,13 +760,15 @@ namespace PubComp.NoSql.MongoDbDriver
             {
                 CheckIfCanModify(entity);
 
-                this.innerSet.FindAndModify(
+                var result = this.innerSet.FindAndModify(
                     new MongoDB.Driver.FindAndModifyArgs
                     {
                         Query = GetQueryById(entity.Id),
                         SortBy = GetSortById(),
                         Update = GetUpdateField(entity, fieldName)
                     });
+                if (result.ErrorMessage != null)
+                    throw new DalConcurrencyFailure(result.ErrorMessage, default(TEntity), DalOperation.Update);
             }
 
             public void IncrementField(TKey key, string fieldName, long increment)
@@ -765,13 +779,15 @@ namespace PubComp.NoSql.MongoDbDriver
                     CheckIfCanModify(entity);
                 }
 
-                this.innerSet.FindAndModify(
+                var result = this.innerSet.FindAndModify(
                     new MongoDB.Driver.FindAndModifyArgs
                     {
                         Query = GetQueryById(key),
                         SortBy = GetSortById(),
                         Update = GetIncrementField(fieldName, increment)
                     });
+                if (result.ErrorMessage != null)
+                    throw new DalConcurrencyFailure(result.ErrorMessage, default(TEntity), DalOperation.Update);
             }
 
             void IEntitySet.Update(IEnumerable<IEntity> entities)
@@ -820,7 +836,7 @@ namespace PubComp.NoSql.MongoDbDriver
             public void Delete(TKey key)
             {
                 if (EqualityComparer<TKey>.Default.Equals(key, default(TKey)))
-                    throw new DalNullIdFailure("Could not delete entity - Id was null.", null, DalOperation.Delete);
+                    throw new DalNullIdFailure("Could not delete entity - Id was null.", default(TEntity), DalOperation.Delete);
 
                 if (OnDeleting != null)
                 {
@@ -828,15 +844,19 @@ namespace PubComp.NoSql.MongoDbDriver
                     CheckIfCanDelete(entity);
                 }
 
-                this.innerSet.Remove(GetQueryById(key));
+                var result = this.innerSet.Remove(GetQueryById(key));
+                if (result.HasLastErrorMessage)
+                    throw new DalConcurrencyFailure(result.LastErrorMessage, default(TEntity), DalOperation.Delete);
             }
 
             private void DeleteInner(TKey key)
             {
                 if (EqualityComparer<TKey>.Default.Equals(key, default(TKey)))
-                    throw new DalNullIdFailure("Could not delete entity - Id was null.", null, DalOperation.Delete);
+                    throw new DalNullIdFailure("Could not delete entity - Id was null.", default(TEntity), DalOperation.Delete);
 
-                this.innerSet.Remove(GetQueryById(key));
+                var result = this.innerSet.Remove(GetQueryById(key));
+                if (result.HasLastErrorMessage)
+                    throw new DalConcurrencyFailure(result.LastErrorMessage, default(TEntity), DalOperation.Delete);
             }
 
             void IEntitySet.Delete(Object key)
@@ -853,7 +873,7 @@ namespace PubComp.NoSql.MongoDbDriver
                     return;
 
                 if (keys.Any(key => EqualityComparer<TKey>.Default.Equals(key, default(TKey))))
-                    throw new DalNullIdFailure("Could not delete entities - at least one provided Id was null.", null, DalOperation.Delete);
+                    throw new DalNullIdFailure("Could not delete entities - at least one provided Id was null.", default(TEntity), DalOperation.Delete);
 
                 if (OnDeleting != null)
                 {
@@ -871,7 +891,7 @@ namespace PubComp.NoSql.MongoDbDriver
                     return;
 
                 if (keys.Any(key => EqualityComparer<TKey>.Default.Equals(key, default(TKey))))
-                    throw new DalNullIdFailure("Could not delete entities - at least one provided Id was null.", null, DalOperation.Delete);
+                    throw new DalNullIdFailure("Could not delete entities - at least one provided Id was null.", default(TEntity), DalOperation.Delete);
 
                 foreach (var key in keys)
                     this.Delete(key);
@@ -893,7 +913,9 @@ namespace PubComp.NoSql.MongoDbDriver
 
             public override void DeleteAll()
             {
-                this.innerSet.RemoveAll();
+                var result = this.innerSet.RemoveAll();
+                if (result.HasLastErrorMessage)
+                    throw new DalConcurrencyFailure(result.LastErrorMessage, default(TEntity), DalOperation.Delete);
             }
 
             internal MongoDB.Driver.MongoCollection<TEntity> InnerSet
