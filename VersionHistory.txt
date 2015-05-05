@@ -68,6 +68,9 @@
 	* Core: Changed exceptions members to enable storing multiple entities instead of one
 	* MongoDb adaptor: Changed write operations (e.g. add, update) to check response and throw exception on failure,
 	this enables safe usage of replica sets
+
+3.0.1:
+	* Changed MongoDb adaptor implementation to use Update() instead of FindAndModify() due to writeConcern check issues
 	
 Upcoming features:
 Service layer including modify date, state, upsert, roles, rest (odata) queries and more

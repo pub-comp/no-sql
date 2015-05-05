@@ -737,15 +737,12 @@ namespace PubComp.NoSql.MongoDbDriver
 
             private void UpdateExisting(TEntity entity)
             {
-                var result = this.innerSet.FindAndModify(
-                    new MongoDB.Driver.FindAndModifyArgs
-                    {
-                        Query = GetQueryById(entity.Id),
-                        SortBy = GetSortById(),
-                        Update = GetUpdateAllButId(entity)
-                    });
-                if (result.ErrorMessage != null)
-                    throw new DalConcurrencyFailure(result.ErrorMessage, default(TEntity), DalOperation.Update);
+                var result = this.innerSet.Update(
+                    GetQueryById(entity.Id),
+                    GetUpdateAllButId(entity));
+
+                if (result.HasLastErrorMessage)
+                    throw new DalConcurrencyFailure(result.LastErrorMessage, default(TEntity), DalOperation.Update);
             }
 
             public void Update(IEnumerable<TEntity> entities)
@@ -760,15 +757,12 @@ namespace PubComp.NoSql.MongoDbDriver
             {
                 CheckIfCanModify(entity);
 
-                var result = this.innerSet.FindAndModify(
-                    new MongoDB.Driver.FindAndModifyArgs
-                    {
-                        Query = GetQueryById(entity.Id),
-                        SortBy = GetSortById(),
-                        Update = GetUpdateField(entity, fieldName)
-                    });
-                if (result.ErrorMessage != null)
-                    throw new DalConcurrencyFailure(result.ErrorMessage, default(TEntity), DalOperation.Update);
+                var result = this.innerSet.Update(
+                    GetQueryById(entity.Id),
+                    GetUpdateField(entity, fieldName));
+
+                if (result.HasLastErrorMessage)
+                    throw new DalConcurrencyFailure(result.LastErrorMessage, default(TEntity), DalOperation.Update);
             }
 
             public void IncrementField(TKey key, string fieldName, long increment)
@@ -779,15 +773,12 @@ namespace PubComp.NoSql.MongoDbDriver
                     CheckIfCanModify(entity);
                 }
 
-                var result = this.innerSet.FindAndModify(
-                    new MongoDB.Driver.FindAndModifyArgs
-                    {
-                        Query = GetQueryById(key),
-                        SortBy = GetSortById(),
-                        Update = GetIncrementField(fieldName, increment)
-                    });
-                if (result.ErrorMessage != null)
-                    throw new DalConcurrencyFailure(result.ErrorMessage, default(TEntity), DalOperation.Update);
+                var result = this.innerSet.Update(
+                    GetQueryById(key),
+                    GetIncrementField(fieldName, increment));
+
+                if (result.HasLastErrorMessage)
+                    throw new DalConcurrencyFailure(result.LastErrorMessage, default(TEntity), DalOperation.Update);
             }
 
             void IEntitySet.Update(IEnumerable<IEntity> entities)
