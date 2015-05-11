@@ -667,6 +667,7 @@ namespace PubComp.NoSql.MongoDbDriver
                 MongoDB.Bson.BsonValue value;
                 try
                 {
+                    // This only works for specific types, no option to check
                     if (MongoDB.Bson.BsonTypeMapper.TryMapToBsonValue(objValue, out value))
                         return value;
                 }
@@ -675,6 +676,7 @@ namespace PubComp.NoSql.MongoDbDriver
                     value = null;
                 }
 
+                // For all other types
                 value = MongoDB.Bson.BsonExtensionMethods.ToBsonDocument(objValue);
 
                 return value;
