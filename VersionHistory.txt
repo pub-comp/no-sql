@@ -71,6 +71,9 @@
 
 3.0.1:
 	* Changed MongoDb adaptor implementation to use Update() instead of FindAndModify() due to writeConcern check issues
+
+3.0.2:
+	* MongoDb connection string builder - URL Encode userName and Password
 	
 Upcoming features:
 Service layer including modify date, state, upsert, roles, rest (odata) queries and more

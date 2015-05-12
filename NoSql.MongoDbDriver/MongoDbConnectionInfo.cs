@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 
 namespace PubComp.NoSql.MongoDbDriver
 {
@@ -79,9 +80,9 @@ namespace PubComp.NoSql.MongoDbDriver
                 string userPass = string.Empty;
                 if (!string.IsNullOrEmpty(Username))
                 {
-                    userPass = Username;
+                    userPass = WebUtility.UrlEncode(Username);
                     if (!string.IsNullOrEmpty(Password))
-                        userPass += ':' + Password;
+                        userPass += ':' + WebUtility.UrlEncode(Password);
 
                     userPass += '@';
                 }
