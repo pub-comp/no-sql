@@ -33,9 +33,20 @@ namespace PubComp.NoSql.MongoDbDriver
             // ReSharper disable once LocalVariableHidesMember
             var entitySets = new List<IEntitySet>();
 
-            var entitySetProperties = concreteType.GetProperties()
-                                        .Where(p => p.PropertyType.IsGenericType
-                                            && p.PropertyType.GetGenericTypeDefinition() == typeof(IEntitySet<,>));
+            var entitySetProperties =
+                concreteType.GetProperties()
+                    .Where(p => p.PropertyType.IsGenericType
+                        && (p.PropertyType.GetGenericTypeDefinition() == typeof(IEntitySet<,>)
+                        || p.PropertyType.GetGenericTypeDefinition() == typeof(IDocumentSet<,>)
+                        || p.PropertyType.GetGenericTypeDefinition() == typeof(EntitySet<,>)
+                        ));
+
+            var contextAttribute = concreteType.GetCustomAttribute(typeof(ContextOptionsAttribute))
+                as ContextOptionsAttribute;
+
+            var contextNamingMode = EntitySetNamingMode.NameByTypeLowerCase;
+            if (contextAttribute != null)
+                contextNamingMode = contextAttribute.EntitySetDefaultNamingMode;
 
             foreach (var prop in entitySetProperties)
             {
@@ -45,9 +56,39 @@ namespace PubComp.NoSql.MongoDbDriver
                 var createEntitySetMethod = typeof(EntitySet<,>).MakeGenericType(new[] { keyType, entityType })
                     .GetConstructor(
                         BindingFlags.Instance | BindingFlags.NonPublic,
-                        null, new[] { typeof(MongoDbContext), typeof(string) }, null);
+                        null, new[] { typeof(MongoDbContext), typeof(string), typeof(string), typeof(EntitySetOptionsAttribute) }, null);
 
-                var entitySet = createEntitySetMethod.Invoke(new object[] { this, this.db });
+                var setNamingMode = contextNamingMode;
+                var setAttribute = prop.GetCustomAttribute(typeof(EntitySetOptionsAttribute))
+                    as EntitySetOptionsAttribute;
+                
+                if (setAttribute != null)
+                {
+                    setNamingMode = setAttribute.NamingMode;
+                }
+
+                string setName;
+
+                switch (setNamingMode)
+                {
+                    case EntitySetNamingMode.NameByProperty:
+                        setName = prop.Name;
+                        break;
+                    case EntitySetNamingMode.NameByPropertyLowerCase:
+                        setName = prop.Name.ToLower();
+                        break;
+                    case EntitySetNamingMode.NameByType:
+                        setName = entityType.Name;
+                        break;
+                    default:
+                        setName = entityType.Name.ToLower();
+                        break;
+                }
+
+                if (setAttribute != null && !string.IsNullOrEmpty(setAttribute.ExplicitName))
+                    setName = setAttribute.ExplicitName;
+
+                var entitySet = createEntitySetMethod.Invoke(new object[] { this, this.db, setName, setAttribute });
                 prop.SetValue(this, entitySet, new object[] { });
 
                 entitySets.Add(entitySet as IEntitySet);
@@ -134,7 +175,10 @@ namespace PubComp.NoSql.MongoDbDriver
         public void DeleteAll()
         {
             foreach (var entitySet in this.entitySets)
-                ((EntitySet)entitySet).DeleteAll();
+            {
+                if (!((EntitySet)entitySet).IsCapped)
+                    ((EntitySet)entitySet).DeleteAll();
+            }
         }
 
 #if DEBUG
@@ -142,8 +186,13 @@ namespace PubComp.NoSql.MongoDbDriver
         {
             var database = MongoDB.Driver.MongoClientExtensions.GetServer(this.innerContext).GetDatabase(this.db);
             var sets = database.GetCollectionNames();
+
             foreach (var set in sets)
-                database.GetCollection(set).RemoveAll();
+            {
+                var collection = database.GetCollection(set);
+                if (!collection.IsCapped())
+                    collection.RemoveAll();
+            }
         }
 #endif
         public void UpdateIndexes(bool removeStaleIndexes)
@@ -287,11 +336,13 @@ namespace PubComp.NoSql.MongoDbDriver
         public abstract class EntitySet
         {
             internal abstract void UpdateIndexes(bool removeStaleIndexes);
+            internal abstract void UpdateIndexes(bool removeStaleIndexes, bool inForeground);
             public abstract IndexDefinition[] GetIndexes();
             public abstract void DeleteAll();
+            internal abstract bool IsCapped { get; }
         }
 
-        public class EntitySet<TKey, TEntity> : EntitySet, IEntitySet<TKey, TEntity>
+        public class EntitySet<TKey, TEntity> : EntitySet, IDocumentSet<TKey, TEntity>
             where TEntity : class, IEntity<TKey>
         {
             // ReSharper disable once StaticMemberInGenericType
@@ -299,7 +350,8 @@ namespace PubComp.NoSql.MongoDbDriver
             protected readonly MongoDbContext parent;
             protected readonly MongoDB.Driver.MongoCollection<TEntity> innerSet;
             protected readonly Type parentType;
-
+            protected readonly bool isCapped;
+            
             static EntitySet()
             {
                 UpdatableProperties = new List<PropertyInfo>();
@@ -325,16 +377,12 @@ namespace PubComp.NoSql.MongoDbDriver
 
                     if (prop.PropertyType == typeof(DateTime))
                     {
-                        //var dateOnly = prop.GetCustomAttributes(typeof(DateOnlyAttribute), true).Any();
-
                         currentMapper.GetMemberMap(prop.Name).SetSerializer(
                             new MongoDB.Bson.Serialization.Serializers.DateTimeSerializer(
                                 DateTimeKind.Local));
                     }
                     else if (prop.PropertyType == typeof(DateTime?))
                     {
-                        //var dateOnly = prop.GetCustomAttributes(typeof(DateOnlyAttribute), true).Any();
-
                         currentMapper.GetMemberMap(prop.Name).SetSerializer(
                             new MongoDB.Bson.Serialization.Serializers.NullableSerializer<DateTime>(
                                 new MongoDB.Bson.Serialization.Serializers.DateTimeSerializer(
@@ -381,23 +429,63 @@ namespace PubComp.NoSql.MongoDbDriver
                 return mapper;
             }
 
-            internal EntitySet(MongoDbContext parent, string db)
+            internal EntitySet(MongoDbContext parent, string db, string collectionName)
+                : this(parent, db, collectionName, null, null)
             {
+            }
+
+            internal EntitySet(MongoDbContext parent, string db, string collectionName, EntitySetOptionsAttribute options)
+                : this(parent, db, collectionName,
+                    options != null ? options.MaxSizeBytes : (long?)null,
+                    options != null ? options.MaxEntities : (long?)null)
+            {
+            }
+
+            internal EntitySet(MongoDbContext parent, string db, string collectionName, long? maxBytes, long? maxCount)
+            {
+                var mongoDatabase = MongoDB.Driver.MongoClientExtensions.GetServer(parent.innerContext)
+                    .GetDatabase(db);
+
+                if (maxBytes != null && maxBytes > 0 || maxCount != null && maxCount > 0)
+                {
+                    isCapped = true;
+
+                    if (!mongoDatabase.CollectionExists(collectionName))
+                    {
+
+                        MongoDB.Driver.Builders.CollectionOptionsBuilder options = null;
+
+                        if (maxBytes != null && maxBytes > 0)
+                        {
+                            options = MongoDB.Driver.Builders.CollectionOptions.SetCapped(true)
+                                .SetMaxSize(maxBytes.Value);
+                        }
+
+                        if (maxCount != null && maxCount > 0)
+                        {
+                            if (options != null)
+                                options = options.SetMaxDocuments(maxCount.Value);
+                            else
+                                options = MongoDB.Driver.Builders.CollectionOptions.SetMaxDocuments(maxCount.Value);
+                        }
+                        
+                        mongoDatabase.CreateCollection(collectionName, options);
+                    }
+                }
+
                 this.parent = parent;
-                this.innerSet = MongoDB.Driver.MongoClientExtensions.GetServer(parent.innerContext).GetDatabase(db).GetCollection<TEntity>(
-                    typeof(TEntity).Name.ToLower());
+                this.innerSet = mongoDatabase.GetCollection<TEntity>(collectionName);
                 this.parentType = parent.GetType();
             }
 
-            internal EntitySet(MongoDbContext parent, string db, string collectionName)
-            {
-                this.parent = parent;
-                this.innerSet = MongoDB.Driver.MongoClientExtensions.GetServer(parent.innerContext).GetDatabase(db).GetCollection<TEntity>(
-                    collectionName);
-                this.parentType = parent.GetType();
-            }
+            internal override bool IsCapped { get { return isCapped; } }
 
             internal override void UpdateIndexes(bool removeStaleIndexes)
+            {
+                UpdateIndexes(removeStaleIndexes, false);
+            }
+
+            internal override void UpdateIndexes(bool removeStaleIndexes, bool inForeground)
             {
                 var indexDefinitions = new List<IndexDefinition>();
 
@@ -423,12 +511,17 @@ namespace PubComp.NoSql.MongoDbDriver
                 }
 
                 foreach (var indexDefinition in indexDefinitions)
-                    this.CreateIndex(indexDefinition);
+                    this.CreateIndex(indexDefinition, false);
             }
 
             public void AddIndex(IndexDefinition indexDefinition)
             {
-                this.CreateIndex(indexDefinition);
+                AddIndex(indexDefinition, false);
+            }
+
+            public void AddIndex(IndexDefinition indexDefinition, bool inForeground)
+            {
+                this.CreateIndex(indexDefinition, inForeground);
             }
 
             private bool IsEqualToIndex(IndexDefinition indexDefintion, MongoDB.Driver.IndexInfo indexInfo)
@@ -506,7 +599,7 @@ namespace PubComp.NoSql.MongoDbDriver
 
                 var result = this.innerSet.Save(entity);
                 if (result.HasLastErrorMessage)
-                    throw new DalConcurrencyFailure(result.LastErrorMessage, entity, DalOperation.Add);
+                    throw new DalFailure(result.LastErrorMessage, entity, DalOperation.Add);
             }
 
             void IEntitySet.AddOrUpdate(IEntity entity)
@@ -549,7 +642,7 @@ namespace PubComp.NoSql.MongoDbDriver
 
                 var result = this.innerSet.Insert(entity);
                 if (result.HasLastErrorMessage)
-                    throw new DalConcurrencyFailure(result.LastErrorMessage, entity, DalOperation.Add);
+                    throw new DalFailure(result.LastErrorMessage, entity, DalOperation.Add);
             }
 
             void IEntitySet.Add(IEntity entity)
@@ -575,7 +668,7 @@ namespace PubComp.NoSql.MongoDbDriver
                 if (hasError)
                 {
                     var errors = string.Join(Environment.NewLine, results.Select(r => r.LastErrorMessage));
-                    throw new DalConcurrencyFailure(errors, entities, DalOperation.Add);
+                    throw new DalFailure(errors, entities, DalOperation.Add);
                 }
             }
 
@@ -639,6 +732,23 @@ namespace PubComp.NoSql.MongoDbDriver
                 CheckIfCanModify(entity);
 
                 UpdateExisting(entity);
+            }
+
+            public void Update(
+                Expression<Func<TEntity, bool>> queryExpression, params KeyValuePair<string, object>[] propertyValues)
+            {
+                if (this.OnModifying != null)
+                    throw new DalAccessRestrictionFailure("Can not run query based update when OnModifying event handler is set");
+
+                var mongoQuery = ToMongoQuery(queryExpression);
+
+                var result = this.innerSet.Update(
+                    mongoQuery,
+                    GetUpdateFields(propertyValues),
+                    MongoDB.Driver.UpdateFlags.Multi);
+
+                if (result.HasLastErrorMessage)
+                    throw new DalFailure(result.LastErrorMessage, default(TEntity), DalOperation.Update);
             }
 
             void IEntitySet.Update(IEntity entity)
@@ -725,6 +835,54 @@ namespace PubComp.NoSql.MongoDbDriver
                 return updateBuilder;
             }
 
+            private MongoDB.Driver.IMongoUpdate GetUpdateFields(TEntity entity, string[] fieldNames)
+            {
+                var setters = new MongoDB.Driver.Builders.UpdateBuilder[fieldNames.Length];
+
+                for (int cnt = 0; cnt < fieldNames.Length; cnt++)
+                {
+                    var fieldName = fieldNames[cnt];
+
+                    var prop = UpdatableProperties.FirstOrDefault(p => p.Name == fieldName);
+
+                    if (prop == null)
+                        throw new DalFailure("Field " + fieldName + " does not exist in collection");
+
+                    var objValue = prop.GetValue(entity, new object[] { });
+                    var value = ToMongoBsonValue(objValue);
+
+                    setters[cnt] = MongoDB.Driver.Builders.Update.Set(fieldName, value);
+                }
+
+                var updateBuilder = MongoDB.Driver.Builders.Update.Combine(setters);
+
+                return updateBuilder;
+            }
+
+            private MongoDB.Driver.IMongoUpdate GetUpdateFields(KeyValuePair<string, object>[] propertyValues)
+            {
+                var setters = new MongoDB.Driver.Builders.UpdateBuilder[propertyValues.Length];
+
+                for (int cnt = 0; cnt < propertyValues.Length; cnt++)
+                {
+                    var fieldName = propertyValues[cnt].Key;
+
+                    var prop = UpdatableProperties.FirstOrDefault(p => p.Name == fieldName);
+
+                    if (prop == null)
+                        throw new DalFailure("Field " + fieldName + " does not exist in collection");
+
+                    var objValue = propertyValues[cnt].Value;
+                    var value = ToMongoBsonValue(objValue);
+
+                    setters[cnt] = MongoDB.Driver.Builders.Update.Set(fieldName, value);
+                }
+
+                var updateBuilder = MongoDB.Driver.Builders.Update.Combine(setters);
+
+                return updateBuilder;
+            }
+
             private MongoDB.Driver.IMongoUpdate GetIncrementField(string fieldName, long increment)
             {
                 var prop = UpdatableProperties.FirstOrDefault(p => p.Name == fieldName);
@@ -744,7 +902,7 @@ namespace PubComp.NoSql.MongoDbDriver
                     GetUpdateAllButId(entity));
 
                 if (result.HasLastErrorMessage)
-                    throw new DalConcurrencyFailure(result.LastErrorMessage, default(TEntity), DalOperation.Update);
+                    throw new DalFailure(result.LastErrorMessage, default(TEntity), DalOperation.Update);
             }
 
             public void Update(IEnumerable<TEntity> entities)
@@ -764,7 +922,19 @@ namespace PubComp.NoSql.MongoDbDriver
                     GetUpdateField(entity, fieldName));
 
                 if (result.HasLastErrorMessage)
-                    throw new DalConcurrencyFailure(result.LastErrorMessage, default(TEntity), DalOperation.Update);
+                    throw new DalFailure(result.LastErrorMessage, default(TEntity), DalOperation.Update);
+            }
+
+            public void UpdateFields(TEntity entity, params string[] fieldNames)
+            {
+                CheckIfCanModify(entity);
+
+                var result = this.innerSet.Update(
+                    GetQueryById(entity.Id),
+                    GetUpdateFields(entity, fieldNames));
+
+                if (result.HasLastErrorMessage)
+                    throw new DalFailure(result.LastErrorMessage, default(TEntity), DalOperation.Update);
             }
 
             public void IncrementField(TKey key, string fieldName, long increment)
@@ -780,7 +950,7 @@ namespace PubComp.NoSql.MongoDbDriver
                     GetIncrementField(fieldName, increment));
 
                 if (result.HasLastErrorMessage)
-                    throw new DalConcurrencyFailure(result.LastErrorMessage, default(TEntity), DalOperation.Update);
+                    throw new DalFailure(result.LastErrorMessage, default(TEntity), DalOperation.Update);
             }
 
             void IEntitySet.Update(IEnumerable<IEntity> entities)
@@ -817,6 +987,20 @@ namespace PubComp.NoSql.MongoDbDriver
                 this.DeleteInner(keys);
             }
 
+            public void Delete(
+                Expression<Func<TEntity, bool>> queryExpression)
+            {
+                if (this.OnDeleting != null)
+                    throw new DalAccessRestrictionFailure("Can not run query based delete when OnDeleting event handler is set");
+
+                var mongoQuery = ToMongoQuery(queryExpression);
+
+                var result = this.innerSet.Remove(mongoQuery);
+
+                if (result.HasLastErrorMessage)
+                    throw new DalFailure(result.LastErrorMessage, default(TEntity), DalOperation.Update);
+            }
+
             void IEntitySet.Delete(IEnumerable<IEntity> entities)
             {
                 var typedEntities = entities.OfType<TEntity>().ToList();
@@ -839,7 +1023,7 @@ namespace PubComp.NoSql.MongoDbDriver
 
                 var result = this.innerSet.Remove(GetQueryById(key));
                 if (result.HasLastErrorMessage)
-                    throw new DalConcurrencyFailure(result.LastErrorMessage, default(TEntity), DalOperation.Delete);
+                    throw new DalFailure(result.LastErrorMessage, default(TEntity), DalOperation.Delete);
             }
 
             private void DeleteInner(TKey key)
@@ -849,7 +1033,7 @@ namespace PubComp.NoSql.MongoDbDriver
 
                 var result = this.innerSet.Remove(GetQueryById(key));
                 if (result.HasLastErrorMessage)
-                    throw new DalConcurrencyFailure(result.LastErrorMessage, default(TEntity), DalOperation.Delete);
+                    throw new DalFailure(result.LastErrorMessage, default(TEntity), DalOperation.Delete);
             }
 
             void IEntitySet.Delete(Object key)
@@ -908,7 +1092,7 @@ namespace PubComp.NoSql.MongoDbDriver
             {
                 var result = this.innerSet.RemoveAll();
                 if (result.HasLastErrorMessage)
-                    throw new DalConcurrencyFailure(result.LastErrorMessage, default(TEntity), DalOperation.Delete);
+                    throw new DalFailure(result.LastErrorMessage, default(TEntity), DalOperation.Delete);
             }
 
             internal MongoDB.Driver.MongoCollection<TEntity> InnerSet
@@ -919,7 +1103,7 @@ namespace PubComp.NoSql.MongoDbDriver
                 }
             }
 
-            private void CreateIndex(IndexDefinition indexDefintion)
+            private void CreateIndex(IndexDefinition indexDefintion, bool inForeground)
             {
                 var keys = new MongoDB.Driver.Builders.IndexKeysBuilder();
                 foreach (var field in indexDefintion.Fields)
@@ -933,6 +1117,7 @@ namespace PubComp.NoSql.MongoDbDriver
                 var options = new MongoDB.Driver.Builders.IndexOptionsBuilder();
                 options.SetSparse(indexDefintion.AsSparse);
                 options.SetUnique(indexDefintion.AsUnique);
+                options.SetBackground(!inForeground);
 
                 this.innerSet.CreateIndex(keys, options);
             }

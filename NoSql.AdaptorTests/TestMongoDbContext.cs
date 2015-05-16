@@ -616,6 +616,72 @@ namespace PubComp.NoSql.AdaptorTests
         }
 
         [TestMethod]
+        public void TestAdd_UpdateSingleFields()
+        {
+            var id = Guid.NewGuid();
+
+            using (var context = getTestContext())
+            {
+                var set = context.EntitiesForUpdates;
+
+                var o1 = new EntityForUpdates
+                {
+                    Id = id,
+                    Text = "o1",
+                    Inners = new List<InnerClass>
+                    {
+                        new InnerClass
+                        {
+                            Property = 2,
+                        },
+                    },
+                    Count = 0,
+                };
+
+                set.Add(o1);
+            }
+
+            using (var context = getTestContext())
+            {
+                var set = context.EntitiesForUpdates as MongoDbContext.EntitySet<Guid, EntityForUpdates>;
+
+                var o2 = new EntityForUpdates
+                {
+                    Id = id,
+                    Text = "o1-updated",
+                    Inners = new List<InnerClass>
+                    {
+                        new InnerClass
+                        {
+                            Property = 3,
+                        },
+                        new InnerClass
+                        {
+                            Property = 5,
+                        },
+                    },
+                    Count = 1,
+                };
+
+                set.UpdateFields(o2, "Inners", "Count");
+            }
+
+            using (var context = getTestContext())
+            {
+                var set = context.EntitiesForUpdates;
+
+                var o3 = set.Get(id);
+
+                Assert.AreEqual("o1", o3.Text);
+                Assert.IsNotNull(o3.Inners.Count);
+                Assert.AreEqual(2, o3.Inners.Count);
+                Assert.IsTrue(o3.Inners.Any(i => i.Property == 3));
+                Assert.IsTrue(o3.Inners.Any(i => i.Property == 5));
+                Assert.AreEqual(1, o3.Count);
+            }
+        }
+
+        [TestMethod]
         public void TestIncrementField()
         {
             var id = Guid.NewGuid();
@@ -712,6 +778,177 @@ namespace PubComp.NoSql.AdaptorTests
                 Assert.IsNotNull(obj2);
                 Assert.AreEqual("name1", obj1.Name);
                 Assert.AreEqual("name2", obj2.Name);
+            }
+        }
+
+        #endregion
+
+        #region Capped EntitySets
+
+        [TestMethod]
+        public void TestMaxSize()
+        {
+            var sourceDocuments = new List<Tag>(100);
+
+            for (int cnt = 0; cnt < 100; cnt++)
+            {
+                sourceDocuments.Add(
+                    new Tag
+                    {
+                        Id = Guid.NewGuid(),
+                        Name = cnt.ToString(System.Globalization.CultureInfo.InvariantCulture)
+                    });
+            }
+
+            using (var context = (MockMongoDbContext)getTestContext())
+            {
+                for (int cnt = 0; cnt < sourceDocuments.Count; cnt++)
+                    context.TagsMaxSize.Add(sourceDocuments[cnt]);
+            }
+
+            List<Tag> readDocuments;
+
+            using (var context = (MockMongoDbContext)getTestContext())
+            {
+                readDocuments = context.TagsMaxSize.AsQueryable().ToList();
+            }
+
+            Assert.IsTrue(readDocuments.Count < sourceDocuments.Count);
+        }
+
+        [TestMethod]
+        public void TestMaxDocuments()
+        {
+            var sourceDocuments = new List<Tag>(11);
+
+            for (int cnt = 0; cnt < 11; cnt++)
+            {
+                sourceDocuments.Add(
+                    new Tag
+                    {
+                        Id = Guid.NewGuid(),
+                        Name = cnt.ToString(System.Globalization.CultureInfo.InvariantCulture)
+                    });
+            }
+
+            using (var context = (MockMongoDbContext)getTestContext())
+            {
+                for (int cnt = 0; cnt < sourceDocuments.Count; cnt++)
+                    context.TagsMaxCount.Add(sourceDocuments[cnt]);
+            }
+
+            List<Tag> readDocuments;
+
+            using (var context = (MockMongoDbContext)getTestContext())
+            {
+                readDocuments = context.TagsMaxCount.AsQueryable().ToList();
+            }
+
+            Assert.AreEqual(10, readDocuments.Count);
+
+            for (int cnt = 1; cnt < sourceDocuments.Count; cnt++)
+            {
+                Assert.IsTrue(
+                    readDocuments.Any(d => d.Id == sourceDocuments[cnt].Id && d.Name == sourceDocuments[cnt].Name));
+            }
+        }
+
+        #endregion
+
+        #region Update, Delete by query
+
+        [TestMethod]
+        public void TestDeleteByQuery()
+        {
+            var sourceDocuments = new List<Tag>(100);
+
+            for (int cnt = 0; cnt < 100; cnt++)
+            {
+                sourceDocuments.Add(
+                    new Tag
+                    {
+                        Id = Guid.NewGuid(),
+                        Name = (cnt % 10).ToString(System.Globalization.CultureInfo.InvariantCulture)
+                    });
+            }
+
+            using (var context = (MockMongoDbContext)getTestContext())
+            {
+                for (int cnt = 0; cnt < sourceDocuments.Count; cnt++)
+                    context.Tags2.Add(sourceDocuments[cnt]);
+            }
+
+            using (var context = (MockMongoDbContext)getTestContext())
+            {
+                context.Tags2.Delete(t => t.Name == "3");
+            }
+
+            List<Tag> readDocuments;
+
+            using (var context = (MockMongoDbContext)getTestContext())
+            {
+                readDocuments = context.Tags2.AsQueryable().ToList();
+            }
+
+            Assert.AreEqual(90, readDocuments.Count);
+
+            for (int cnt = 0; cnt < sourceDocuments.Count; cnt++)
+            {
+                if (cnt % 10 == 3)
+                    continue;
+
+                Assert.IsTrue(
+                    readDocuments.Any(d => d.Id == sourceDocuments[cnt].Id && d.Name == sourceDocuments[cnt].Name));
+            }
+        }
+
+        [TestMethod]
+        public void TestUpdateByQuery()
+        {
+            var sourceDocuments = new List<Tag>(100);
+
+            for (int cnt = 0; cnt < 100; cnt++)
+            {
+                sourceDocuments.Add(
+                    new Tag
+                    {
+                        Id = Guid.NewGuid(),
+                        Name = (cnt % 10).ToString(System.Globalization.CultureInfo.InvariantCulture)
+                    });
+            }
+
+            using (var context = (MockMongoDbContext)getTestContext())
+            {
+                for (int cnt = 0; cnt < sourceDocuments.Count; cnt++)
+                    context.Tags2.Add(sourceDocuments[cnt]);
+            }
+
+            using (var context = (MockMongoDbContext)getTestContext())
+            {
+                context.Tags2.Update(t => t.Name == "3", new KeyValuePair<string, object>("Name", "333"));
+            }
+
+            List<Tag> readDocuments;
+
+            using (var context = (MockMongoDbContext)getTestContext())
+            {
+                readDocuments = context.Tags2.AsQueryable().ToList();
+            }
+
+            Assert.AreEqual(100, readDocuments.Count);
+
+            for (int cnt = 0; cnt < sourceDocuments.Count; cnt++)
+            {
+                if (cnt % 10 != 3)
+                {
+                    Assert.IsTrue(
+                        readDocuments.Any(d => d.Id == sourceDocuments[cnt].Id && d.Name == sourceDocuments[cnt].Name));
+                }
+                else
+                {
+                    Assert.IsTrue(
+                        readDocuments.Any(d => d.Id == sourceDocuments[cnt].Id && d.Name == "333"));
+                }
             }
         }
 

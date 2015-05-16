@@ -158,6 +158,44 @@ namespace PubComp.NoSql.AdaptorTests
         }
 
         [TestMethod]
+        public void TestAdd_Update_SpecificEntity()
+        {
+            var id = Guid.NewGuid();
+
+            using (var context = getTestContext())
+            {
+                var o1 = new SpecificEntity
+                {
+                    Id = id,
+                    Name = "n1",
+                    SpecificData = "d1",
+                };
+
+                context.SpecificEntities.Add(o1);
+            }
+
+            using (var context = getTestContext())
+            {
+                var o2 = new SpecificEntity
+                {
+                    Id = id,
+                    Name = "n2",
+                    SpecificData = "d2",
+                };
+
+                context.SpecificEntities.Update(o2);
+            }
+
+            using (var context = getTestContext())
+            {
+                var o3 = context.SpecificEntities.Get(id);
+
+                Assert.AreEqual("n2", o3.Name);
+                Assert.AreEqual("d2", o3.SpecificData);
+            }
+        }
+
+        [TestMethod]
         public void TestAdd_DeleteById()
         {
             var id = Guid.NewGuid();

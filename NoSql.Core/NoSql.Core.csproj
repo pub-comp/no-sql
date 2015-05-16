@@ -53,10 +53,14 @@
     <Compile Include="DalItemNotFoundFailure.cs" />
     <Compile Include="DalNullIdFailure.cs" />
     <Compile Include="DateOnlyAttribute.cs" />
+    <Compile Include="EntitySetNamingMode.cs" />
+    <Compile Include="ContextOptionsAttribute.cs" />
+    <Compile Include="EntitySetOptionsAttribute.cs" />
     <Compile Include="DbIgnoreAttribute.cs" />
     <Compile Include="Failure.cs" />
     <Compile Include="IDomainContext.cs" />
     <Compile Include="IEntity.cs" />
+    <Compile Include="IDocumentSet.cs" />
     <Compile Include="IEntitySet.cs" />
     <Compile Include="IFileSet.cs" />
     <Compile Include="IndexDefinition.cs" />

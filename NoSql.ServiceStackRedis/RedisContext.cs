@@ -22,9 +22,12 @@ namespace PubComp.NoSql.ServiceStackRedis
             this.innerContext = new ServiceStack.Redis.RedisClient(host, port, null, 0);
             var entitySets = new List<IEntitySet>();
 
-            var entitySetProperties = this.GetType().GetProperties()
-                                        .Where(p => p.PropertyType.IsGenericType
-                                            && p.PropertyType.GetGenericTypeDefinition() == typeof(IEntitySet<,>));
+            var entitySetProperties =
+                this.GetType().GetProperties()
+                    .Where(p => p.PropertyType.IsGenericType
+                        && (p.PropertyType.GetGenericTypeDefinition() == typeof(IEntitySet<,>)
+                        || p.PropertyType.GetGenericTypeDefinition() == typeof(EntitySet<,>)
+                        ));
 
             foreach (var prop in entitySetProperties)
             {

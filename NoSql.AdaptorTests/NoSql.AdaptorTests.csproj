@@ -93,6 +93,7 @@
     <Compile Include="MocksForAccessTest\MockMongoDbForAccessTests.cs" />
     <Compile Include="MocksForAccessTest\MockRedisForAccessTest.cs" />
     <Compile Include="MocksForAccessTest\Status.cs" />
+    <Compile Include="Mock\BaseEntity.cs" />
     <Compile Include="Mock\Dates.cs" />
     <Compile Include="Mock\EntityForCalc.cs" />
     <Compile Include="Mock\EntityForUpdates.cs" />

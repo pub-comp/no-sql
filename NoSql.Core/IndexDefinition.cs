@@ -12,6 +12,14 @@ namespace PubComp.NoSql.Core
             this.AsSparse = asSparse;
         }
 
+        public IndexDefinition(Type entityType, KeyProperty[] fields, bool asUnique)
+        {
+            this.EntityType = entityType;
+            this.Fields = fields;
+            this.AsUnique = asUnique;
+            this.AsSparse = false;
+        }
+
         public Type EntityType { private set; get; }
         public KeyProperty[] Fields { private set; get; }
         public bool AsUnique { private set; get; }

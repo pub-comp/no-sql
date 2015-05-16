@@ -8,6 +8,7 @@ using PubComp.NoSql.MongoDbDriver;
 
 namespace PubComp.NoSql.AdaptorTests.Mock
 {
+    [ContextOptions(EntitySetDefaultNamingMode = EntitySetNamingMode.NameByProperty)]
     public class MockMongoDbContext : MongoDbContext, IMockContext
     {
         public MockMongoDbContext(MongoDbConnectionInfo connectionInfo)
@@ -51,8 +52,10 @@ namespace PubComp.NoSql.AdaptorTests.Mock
 
         public IEntitySet<Guid, InfoBase> Infos { get; private set; }
 
+        [EntitySetOptions(ExplicitName = "TagsCollection")]
         public IEntitySet<Guid, Tag> Tags { get; private set; }
 
+        [EntitySetOptions(NamingMode = EntitySetNamingMode.NameByTypeLowerCase)]
         public IEntitySet<Guid, EntityForCalc> EntitiesForCalc { get; private set; }
 
         public IEntitySet<Guid, EntityForUpdates> EntitiesForUpdates { get; private set; }
@@ -66,5 +69,16 @@ namespace PubComp.NoSql.AdaptorTests.Mock
         public IEntitySet<Guid, Dates> Dates { get; private set; }
 
         public new IFileSet<Guid> Files { get; private set; }
+
+        [EntitySetOptions(NamingMode = EntitySetNamingMode.NameByProperty, MaxSizeBytes = 1000L)]
+        public IEntitySet<Guid, Tag> TagsMaxSize { get; private set; }
+
+        [EntitySetOptions(NamingMode = EntitySetNamingMode.NameByProperty, MaxSizeBytes = 1000L, MaxEntities = 10L)]
+        public IEntitySet<Guid, Tag> TagsMaxCount { get; private set; }
+
+        [EntitySetOptions(ExplicitName = "Tags2")]
+        public IDocumentSet<Guid, Tag> Tags2 { get; private set; }
+
+        public IEntitySet<Guid, SpecificEntity> SpecificEntities { get; private set;  }
     }
 }
