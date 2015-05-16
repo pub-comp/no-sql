@@ -79,6 +79,10 @@
 	* MongoDb adaptor: Added option to name collections according to property names, attribute values and more
 	See new ContextOptionsAttribute and EntitySetOptionsAttribute
 	* MongoDb adaptor: Added option for capped collections, see new EntitySetOptionsAttribute
+	(capped settings only apply for new created collections, for existing collections use MongoDB shell to change options)
 	* MongoDb adaptor: Exposed UpdateField(), UpdateFields() via new IDocumentSet interface
 	* MongoDb adaptor: Added Update() and Delete() with Expression<Func<TEntity, bool>> filter exposed via new IDocumentSet interface
 	* MongoDb adaptor: Changed default for indexes to create in background + added override for selecting foreground vs. background
+3.2.0:
+	* MongoDb adaptor: Added option to use EntitySetOptionsAttribute with context.GetEntitySet<,>(),
+	enabling using dynamically created entity sets with capped options

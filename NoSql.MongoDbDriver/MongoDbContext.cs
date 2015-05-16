@@ -251,6 +251,20 @@ namespace PubComp.NoSql.MongoDbDriver
             return entitySet;
         }
 
+        public IEntitySet<TKey, TEntity> GetEntitySet<TKey, TEntity>(string collectionName, EntitySetOptionsAttribute options)
+            where TEntity : class, IEntity<TKey>
+        {
+            var entitySet = new EntitySet<TKey, TEntity>(this, this.db, collectionName, options);
+            return entitySet;
+        }
+
+        public IEntitySet<TKey, TEntity> GetEntitySet<TKey, TEntity>(string dbName, string collectionName, EntitySetOptionsAttribute options)
+            where TEntity : class, IEntity<TKey>
+        {
+            var entitySet = new EntitySet<TKey, TEntity>(this, dbName, collectionName, options);
+            return entitySet;
+        }
+
         private static void MapReduceInner<TResult>(
             MongoDB.Driver.MongoCollection collection,
             MongoDB.Driver.IMongoQuery query, MongoDB.Driver.IMongoSortBy sortBy,

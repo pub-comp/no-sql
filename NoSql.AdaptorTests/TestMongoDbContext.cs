@@ -853,6 +853,59 @@ namespace PubComp.NoSql.AdaptorTests
             }
         }
 
+        [TestMethod]
+        public void TestMaxDocuments_DynamicCollection()
+        {
+            var sourceDocuments = new List<Tag>(11);
+
+            for (int cnt = 0; cnt < 11; cnt++)
+            {
+                sourceDocuments.Add(
+                    new Tag
+                    {
+                        Id = Guid.NewGuid(),
+                        Name = cnt.ToString(System.Globalization.CultureInfo.InvariantCulture)
+                    });
+            }
+
+            using (var context = (MockMongoDbContext)getTestContext())
+            {
+                var set = context.GetEntitySet<Guid, Tag>(
+                    "DynamicCappedTags",
+                    new EntitySetOptionsAttribute
+                    {
+                        MaxSizeBytes = 1000L,
+                        MaxEntities = 9L,
+                    });
+
+                for (int cnt = 0; cnt < sourceDocuments.Count; cnt++)
+                    set.Add(sourceDocuments[cnt]);
+            }
+
+            List<Tag> readDocuments;
+
+            using (var context = (MockMongoDbContext)getTestContext())
+            {
+                var set = context.GetEntitySet<Guid, Tag>(
+                    "DynamicCappedTags",
+                    new EntitySetOptionsAttribute
+                    {
+                        MaxSizeBytes = 1000L,
+                        MaxEntities = 9L,
+                    });
+
+                readDocuments = set.AsQueryable().ToList();
+            }
+
+            Assert.AreEqual(9, readDocuments.Count);
+
+            for (int cnt = 2; cnt < sourceDocuments.Count; cnt++)
+            {
+                Assert.IsTrue(
+                    readDocuments.Any(d => d.Id == sourceDocuments[cnt].Id && d.Name == sourceDocuments[cnt].Name));
+            }
+        }
+
         #endregion
 
         #region Update, Delete by query
