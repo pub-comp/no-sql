@@ -515,6 +515,75 @@ namespace PubComp.NoSql.AdaptorTests
 
         #endregion
 
+        #region Aggregation
+
+        [TestMethod]
+        public void TestAggregation()
+        {
+            // Note: The reduction failed when I attempted to use Decimal instead of Double
+
+            Guid id1 = Guid.NewGuid();
+            Guid id2 = Guid.NewGuid();
+
+            int numberOfTransactions = 1000;
+            double total1, total2;
+            PrepareReductionData(id1, id2, numberOfTransactions, out total1, out total2);
+
+            using (var context = getTestContext() as MockMongoDbContext)
+            {
+                context.UpdateIndexes(true);
+
+                // Select function for iterator
+                const string project =
+                    @"{
+                        OwnerId: 1,
+                        Money: 1,
+                        NumberOfTransactions: { $literal: 1 }
+                    }";
+
+                // Aggregation of values into a single result
+                const string group =
+                    @"{
+                        _id: ""$OwnerId"",
+                        NumberOfTransactions: { $sum: ""$NumberOfTransactions"" },
+                        Money: { $sum: ""$Money"" },
+                        Date: { $max: ""$Date"" }
+                    }";
+
+                // Enables normalizing result e.g. converting sum into average
+                const string postProject =
+                    @"{ NumberOfTransactions: 1, Money: { $add: [ ""$Money"", -0.1 ] }}";
+
+                IEnumerable<AggregationResult> aggregationResults;
+
+                var set = (MongoDbContext.EntitySet<Guid, EntityForCalc>)context.EntitiesForCalc;
+
+                set.Aggregate(
+                    AggregateOuputMode.Inline, true, out aggregationResults, null,
+                    e => e.OwnerId == id1, null, project, group, postProject);
+
+                var results = aggregationResults.ToList();
+
+                Assert.AreEqual(1, results.Count);
+
+                Assert.AreEqual(id1, results[0].Id);
+
+                Assert.AreEqual(numberOfTransactions, results[0].NumberOfTransactions);
+                Assert.IsTrue(Math.Abs(total1 - 0.1 - results[0].Money) <= 1);
+            }
+        }
+
+        public class AggregationResult
+        {
+            public Guid Id { get; set; }
+            public Guid OwnerId { get; set; }
+            public DateTime Date { get; set; }
+            public double Money { get; set; }
+            public int NumberOfTransactions { get; set; }
+        }
+
+        #endregion
+
         #region Atomic Operations
 
         [TestMethod]
@@ -909,6 +978,98 @@ namespace PubComp.NoSql.AdaptorTests
         #endregion
 
         #region Update, Delete by query
+
+        [TestMethod]
+        public void TestDeleteMultiple()
+        {
+            var sourceDocuments = new List<Tag>(100);
+
+            for (int cnt = 0; cnt < 100; cnt++)
+            {
+                sourceDocuments.Add(
+                    new Tag
+                    {
+                        Id = Guid.NewGuid(),
+                        Name = (cnt % 10).ToString(System.Globalization.CultureInfo.InvariantCulture)
+                    });
+            }
+
+            using (var context = (MockMongoDbContext)getTestContext())
+            {
+                context.Tags2.Add(sourceDocuments);
+            }
+
+            var toDelete = sourceDocuments.Where(t => t.Name == "3").ToList();
+
+            using (var context = (MockMongoDbContext)getTestContext())
+            {
+                context.Tags2.Delete(toDelete);
+            }
+
+            List<Tag> readDocuments;
+
+            using (var context = (MockMongoDbContext)getTestContext())
+            {
+                readDocuments = context.Tags2.AsQueryable().ToList();
+            }
+
+            Assert.AreEqual(90, readDocuments.Count);
+
+            for (int cnt = 0; cnt < sourceDocuments.Count; cnt++)
+            {
+                if (cnt % 10 == 3)
+                    continue;
+
+                Assert.IsTrue(
+                    readDocuments.Any(d => d.Id == sourceDocuments[cnt].Id && d.Name == sourceDocuments[cnt].Name));
+            }
+        }
+
+        [TestMethod]
+        public void TestDeleteMultipleById()
+        {
+            var sourceDocuments = new List<Tag>(100);
+
+            for (int cnt = 0; cnt < 100; cnt++)
+            {
+                sourceDocuments.Add(
+                    new Tag
+                    {
+                        Id = Guid.NewGuid(),
+                        Name = (cnt % 10).ToString(System.Globalization.CultureInfo.InvariantCulture)
+                    });
+            }
+
+            using (var context = (MockMongoDbContext)getTestContext())
+            {
+                context.Tags2.Add(sourceDocuments);
+            }
+
+            var idsToDelete = sourceDocuments.Where(t => t.Name == "3").Select(t => t.Id).ToList();
+
+            using (var context = (MockMongoDbContext)getTestContext())
+            {
+                context.Tags2.Delete(idsToDelete);
+            }
+
+            List<Tag> readDocuments;
+
+            using (var context = (MockMongoDbContext)getTestContext())
+            {
+                readDocuments = context.Tags2.AsQueryable().ToList();
+            }
+
+            Assert.AreEqual(90, readDocuments.Count);
+
+            for (int cnt = 0; cnt < sourceDocuments.Count; cnt++)
+            {
+                if (cnt % 10 == 3)
+                    continue;
+
+                Assert.IsTrue(
+                    readDocuments.Any(d => d.Id == sourceDocuments[cnt].Id && d.Name == sourceDocuments[cnt].Name));
+            }
+        }
 
         [TestMethod]
         public void TestDeleteByQuery()

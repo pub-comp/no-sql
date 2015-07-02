@@ -48,6 +48,7 @@ namespace PubComp.NoSql.Core
         Get,
         Add,
         Update,
-        Delete
+        Delete,
+        Reduce,
     }
 }

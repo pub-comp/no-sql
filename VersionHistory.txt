@@ -83,6 +83,13 @@
 	* MongoDb adaptor: Exposed UpdateField(), UpdateFields() via new IDocumentSet interface
 	* MongoDb adaptor: Added Update() and Delete() with Expression<Func<TEntity, bool>> filter exposed via new IDocumentSet interface
 	* MongoDb adaptor: Changed default for indexes to create in background + added override for selecting foreground vs. background
+
 3.2.0:
 	* MongoDb adaptor: Added option to use EntitySetOptionsAttribute with context.GetEntitySet<,>(),
 	enabling using dynamically created entity sets with capped options
+
+3.3.0:
+	* Core: Added values to DalOperation enum
+	* MongoDb adaptor: Added error check to map-reduce
+	* MongoDb adaptor: Change a few members from private to protected
+	* MongoDb adaptor: Exposed aggregation framework, currently with initial API

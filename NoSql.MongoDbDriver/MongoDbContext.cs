@@ -12,10 +12,10 @@ namespace PubComp.NoSql.MongoDbDriver
 {
     public abstract class MongoDbContext : IDomainContext
     {
-        private readonly MongoDB.Driver.MongoClient innerContext;
+        protected readonly MongoDB.Driver.MongoClient innerContext;
         private readonly IEnumerable<IEntitySet> entitySets;
         private readonly IFileSet fileSet;
-        private readonly string db;
+        protected readonly string db;
         private static readonly ConcurrentDictionary<String, MongoDB.Bson.Serialization.BsonClassMap> Mappers
             = new ConcurrentDictionary<string, MongoDB.Bson.Serialization.BsonClassMap>();
 
@@ -215,7 +215,7 @@ namespace PubComp.NoSql.MongoDbDriver
             return result;
         }
 
-        private static MongoDB.Driver.IMongoQuery ToMongoQuery<TEntity>(
+        protected static MongoDB.Driver.IMongoQuery ToMongoQuery<TEntity>(
             Expression<Func<TEntity, bool>> queryExpression)
         {
             var query = (queryExpression != null)
@@ -225,7 +225,7 @@ namespace PubComp.NoSql.MongoDbDriver
             return query;
         }
 
-        private static MongoDB.Driver.IMongoSortBy ToMongoSortBy<TEntity>(
+        protected static MongoDB.Driver.IMongoSortBy ToMongoSortBy<TEntity>(
             Expression<Func<TEntity, object>> sortExpression, bool ascending = true)
         {
             var sortBy = (sortExpression != null)
@@ -265,12 +265,35 @@ namespace PubComp.NoSql.MongoDbDriver
             return entitySet;
         }
 
+        public void MapReduce<TEntity, TResult>(
+            string collectionName,
+            Expression<Func<TEntity, bool>> queryExpression,
+            string mapFunction, string reduceFunction, string finalizeFunction,
+            bool doGetResults, out IEnumerable<TResult> results,
+            ReduceStoreMode storeMode = ReduceStoreMode.None,
+            string resultSet = null, string resultDbName = null,
+            Expression<Func<TEntity, Object>> sortByExpression = null,
+            ReduceOptions options = null)
+        {
+            var collection = MongoDB.Driver.MongoClientExtensions.GetServer(this.innerContext).GetDatabase(db)
+                .GetCollection<TEntity>(collectionName);
+
+            var query = ToMongoQuery(queryExpression);
+            var sortBy = ToMongoSortBy(sortByExpression);
+
+            MapReduceInner(
+                collection, query, sortBy,
+                mapFunction, reduceFunction, finalizeFunction,
+                doGetResults, out results, storeMode, resultSet, resultDbName, options);
+        }
+
         private static void MapReduceInner<TResult>(
             MongoDB.Driver.MongoCollection collection,
             MongoDB.Driver.IMongoQuery query, MongoDB.Driver.IMongoSortBy sortBy,
             string mapFunction, string reduceFunction, string finalizeFunction,
             bool doGetResults, out IEnumerable<TResult> results,
-            ReduceStoreMode storeMode, string resultSet, string resultDbName)
+            ReduceStoreMode storeMode, string resultSet, string resultDbName,
+            ReduceOptions options = null)
         {
             if (string.IsNullOrEmpty(resultSet))
                 storeMode = ReduceStoreMode.None;
@@ -303,7 +326,8 @@ namespace PubComp.NoSql.MongoDbDriver
                 MapFunction = mapFunction,
                 ReduceFunction = reduceFunction,
                 OutputMode = outputMode,
-                OutputCollectionName = outputCollectionName
+                OutputCollectionName = outputCollectionName,
+                JsMode = options != null && options.DoUseJsMode,
             };
 
             if (query != null)
@@ -320,6 +344,9 @@ namespace PubComp.NoSql.MongoDbDriver
 
             var reductionResults = collection.MapReduce(args);
 
+            if (!string.IsNullOrEmpty(reductionResults.ErrorMessage))
+                throw new DalFailure(reductionResults.ErrorMessage, DalOperation.Reduce);
+
             results = (doGetResults) ?
                     ((storeMode == ReduceStoreMode.None)
                         ? reductionResults.GetInlineResultsAs<TResult>()
@@ -327,24 +354,114 @@ namespace PubComp.NoSql.MongoDbDriver
                     : null;
         }
 
-        public void MapReduce<TEntity, TResult>(
+        public void Aggregate<TEntity, TResult>(
             string collectionName,
-            Expression<Func<TEntity, bool>> queryExpression,
-            string mapFunction, string reduceFunction, string finalizeFunction,
-            bool doGetResults, out IEnumerable<TResult> results,
-            ReduceStoreMode storeMode = ReduceStoreMode.None,
-            string resultSet = null, string resultDbName = null,
-            Expression<Func<TEntity, Object>> sortByExpression = null)
+            AggregateOuputMode outputMode,
+            bool doGetResults, out IEnumerable<TResult> results, string resultSet = null,
+            Expression<Func<TEntity, bool>> queryExpression = null,
+            Expression<Func<TResult, Object>> sortByExpression = null,
+            string projectFunction = null, string groupFunction = null, string postProjectFunction = null,
+            int? skip = null, int? take = null,
+            AggregateOptions options = null)
         {
-            var collection = MongoDB.Driver.MongoClientExtensions.GetServer(this.innerContext).GetDatabase(db).GetCollection<TEntity>(collectionName);
+            var collection = MongoDB.Driver.MongoClientExtensions.GetServer(this.innerContext).GetDatabase(db)
+                .GetCollection<TEntity>(collectionName);
 
             var query = ToMongoQuery(queryExpression);
             var sortBy = ToMongoSortBy(sortByExpression);
 
-            MapReduceInner(
-                collection, query, sortBy,
-                mapFunction, reduceFunction, finalizeFunction,
-                doGetResults, out results, storeMode, resultSet, resultDbName);
+            AggregateInner(
+                collection,
+                outputMode, doGetResults, out results, resultSet,
+                query, sortBy,
+                projectFunction, groupFunction, postProjectFunction,
+                skip, take,
+                options);
+        }
+
+        private static void AggregateInner<TResult>(
+            MongoDB.Driver.MongoCollection collection,
+            AggregateOuputMode outputMode, bool doGetResults, out IEnumerable<TResult> results, string resultSet,
+            MongoDB.Driver.IMongoQuery query, MongoDB.Driver.IMongoSortBy sortBy,
+            string projectFunction = null, string groupFunction = null, string postProjectFunction = null,
+            int? skip = null, int? take = null,
+            AggregateOptions options = null)
+        {
+            var pipelineStages = new List<MongoDB.Bson.BsonDocument>();
+
+            if (query != null)
+            {
+                var matchDoc = new MongoDB.Bson.BsonDocument(
+                    "$match", MongoDB.Bson.BsonExtensionMethods.ToBsonDocument(query));
+                pipelineStages.Add(matchDoc);
+            }
+
+            if (projectFunction != null)
+            {
+                var projectDoc = new MongoDB.Bson.BsonDocument(
+                    "$project", MongoDB.Bson.BsonDocument.Parse(projectFunction));
+                pipelineStages.Add(projectDoc);
+            }
+
+            if (groupFunction != null)
+            {
+                var groupDoc = new MongoDB.Bson.BsonDocument(
+                    "$group", MongoDB.Bson.BsonDocument.Parse(groupFunction));
+                pipelineStages.Add(groupDoc);
+            }
+
+            if (postProjectFunction != null)
+            {
+                var projectDoc2 = new MongoDB.Bson.BsonDocument(
+                    "$project", MongoDB.Bson.BsonDocument.Parse(postProjectFunction));
+                pipelineStages.Add(projectDoc2);
+            }
+
+            if (sortBy != null)
+            {
+                var sortDoc = new MongoDB.Bson.BsonDocument(
+                    "$sort", MongoDB.Bson.BsonExtensionMethods.ToBsonDocument(sortBy));
+                pipelineStages.Add(sortDoc);
+            }
+
+            if (skip != null)
+            {
+                var skipDoc = new MongoDB.Bson.BsonDocument(
+                    "$skip", new MongoDB.Bson.BsonInt32(skip.Value));
+                pipelineStages.Add(skipDoc);
+            }
+
+            if (take != null)
+            {
+                var limitDoc = new MongoDB.Bson.BsonDocument(
+                    "$limit", new MongoDB.Bson.BsonInt32(take.Value));
+                pipelineStages.Add(limitDoc);
+            }
+
+            if (resultSet != null)
+            {
+                var outDoc = new MongoDB.Bson.BsonDocument(
+                    "$out", new MongoDB.Bson.BsonString(resultSet));
+                pipelineStages.Add(outDoc);
+            }
+
+            var args = new MongoDB.Driver.AggregateArgs
+            {
+                AllowDiskUse = options != null ? options.DoAllowDiskUsage : null,
+                BatchSize = options != null ? options.BatchSize : null,
+                MaxTime = options != null ? options.Timeout : null,
+                OutputMode = (outputMode == AggregateOuputMode.Inline
+                                ? MongoDB.Driver.AggregateOutputMode.Inline
+                                : MongoDB.Driver.AggregateOutputMode.Cursor),
+                Pipeline = pipelineStages,
+            };
+
+            var aggregationResults = collection.Aggregate(args);
+
+            results = doGetResults
+                ? aggregationResults.Select(d =>
+                    MongoDB.Bson.Serialization.BsonSerializer.Deserialize<TResult>(d))
+                : null;
         }
 
         public abstract class EntitySet
@@ -1084,13 +1201,7 @@ namespace PubComp.NoSql.MongoDbDriver
                 if (keys.Any(key => EqualityComparer<TKey>.Default.Equals(key, default(TKey))))
                     throw new DalNullIdFailure("Could not delete entities - at least one provided Id was null.", default(TEntity), DalOperation.Delete);
 
-                foreach (var key in keys)
-                    this.Delete(key);
-
-                // Won't work
-                //var query = GetQueryByIds(keys);
-                ////var entities = this.innerSet.Find(query).ToList();
-                //this.innerSet.Remove(query);
+                this.Delete(ent => keys.Contains(ent.Id));
             }
 
             void IEntitySet.Delete(IEnumerable<Object> keys)
@@ -1172,7 +1283,8 @@ namespace PubComp.NoSql.MongoDbDriver
                 bool doGetResults, out IEnumerable<TResult> results,
                 ReduceStoreMode storeMode = ReduceStoreMode.None,
                 string resultSet = null, string resultDbName = null,
-                Expression<Func<TEntity, Object>> sortByExpression = null)
+                Expression<Func<TEntity, Object>> sortByExpression = null,
+                ReduceOptions options = null)
                 where TResult : new()
             {
                 var query = ToMongoQuery(queryExpression);
@@ -1181,7 +1293,28 @@ namespace PubComp.NoSql.MongoDbDriver
                 MapReduceInner(
                     this.innerSet, query, sortBy,
                     mapFunction, reduceFunction, finalizeFunction,
-                    doGetResults, out results, storeMode, resultSet, resultDbName);
+                    doGetResults, out results, storeMode, resultSet, resultDbName, options);
+            }
+
+            public void Aggregate<TResult>(
+                AggregateOuputMode outputMode,
+                bool doGetResults, out IEnumerable<TResult> results, string resultSet = null,
+                Expression<Func<TEntity, bool>> queryExpression = null,
+                Expression<Func<TResult, Object>> sortByExpression = null,
+                string projectFunction = null, string groupFunction = null, string postProjectFunction = null,
+                int? skip = null, int? take = null,
+                AggregateOptions options = null)
+            {
+                var query = ToMongoQuery(queryExpression);
+                var sortBy = ToMongoSortBy(sortByExpression);
+
+                AggregateInner(
+                    this.innerSet,
+                    outputMode, doGetResults, out results, resultSet,
+                    query, sortBy,
+                    projectFunction, groupFunction, postProjectFunction,
+                    skip, take,
+                    options);
             }
 
             #region Navigation
@@ -1383,4 +1516,18 @@ namespace PubComp.NoSql.MongoDbDriver
     }
 
     public enum ReduceStoreMode { None, NewSet, ReplaceItems, Combine };
+
+    public enum AggregateOuputMode { Cursor, Inline };
+
+    public class ReduceOptions
+    {
+        public bool DoUseJsMode { get; set; }
+    }
+
+    public class AggregateOptions
+    {
+        public bool? DoAllowDiskUsage { get; set; }
+        public int? BatchSize { get; set; }
+        public TimeSpan? Timeout { get; set; }
+    }
 }
