@@ -19,6 +19,8 @@ namespace PubComp.NoSql.MongoDbDriver
         private static readonly ConcurrentDictionary<String, MongoDB.Bson.Serialization.BsonClassMap> Mappers
             = new ConcurrentDictionary<string, MongoDB.Bson.Serialization.BsonClassMap>();
 
+        #region Constructor
+
         public MongoDbContext(MongoDbConnectionInfo connectionInfo)
             : this(connectionInfo.ConnectionString, connectionInfo.Db)
         {
@@ -136,6 +138,8 @@ namespace PubComp.NoSql.MongoDbDriver
             }
         }
 
+        #endregion
+
         private void RegisterKnownTypes(Type[] types)
         {
             foreach (var type in types)
@@ -215,7 +219,9 @@ namespace PubComp.NoSql.MongoDbDriver
             return result;
         }
 
-        protected static MongoDB.Driver.IMongoQuery ToMongoQuery<TEntity>(
+        #region Convert Expressions
+
+        protected internal static MongoDB.Driver.IMongoQuery ToMongoQuery<TEntity>(
             Expression<Func<TEntity, bool>> queryExpression)
         {
             var query = (queryExpression != null)
@@ -225,7 +231,7 @@ namespace PubComp.NoSql.MongoDbDriver
             return query;
         }
 
-        protected static MongoDB.Driver.IMongoSortBy ToMongoSortBy<TEntity>(
+        protected internal static MongoDB.Driver.IMongoSortBy ToMongoSortBy<TEntity>(
             Expression<Func<TEntity, object>> sortExpression, bool ascending = true)
         {
             var sortBy = (sortExpression != null)
@@ -236,6 +242,10 @@ namespace PubComp.NoSql.MongoDbDriver
 
             return sortBy;
         }
+
+        #endregion
+
+        #region GetEntitySet
 
         public IEntitySet<TKey, TEntity> GetEntitySet<TKey, TEntity>(string collectionName)
             where TEntity : class, IEntity<TKey>
@@ -264,6 +274,10 @@ namespace PubComp.NoSql.MongoDbDriver
             var entitySet = new EntitySet<TKey, TEntity>(this, dbName, collectionName, options);
             return entitySet;
         }
+
+        #endregion
+
+        #region MapReduce
 
         public void MapReduce<TEntity, TResult>(
             string collectionName,
@@ -354,96 +368,33 @@ namespace PubComp.NoSql.MongoDbDriver
                     : null;
         }
 
+        #endregion
+
+        #region Aggregate
+
         public void Aggregate<TEntity, TResult>(
             string collectionName,
             AggregateOuputMode outputMode,
-            bool doGetResults, out IEnumerable<TResult> results, string resultSet = null,
-            Expression<Func<TEntity, bool>> queryExpression = null,
-            Expression<Func<TResult, Object>> sortByExpression = null,
-            string projectFunction = null, string groupFunction = null, string postProjectFunction = null,
-            int? skip = null, int? take = null,
+            bool doGetResults, out IEnumerable<TResult> results,
+            IEnumerable<AggregateStep> pipelineSteps,
             AggregateOptions options = null)
         {
-            var collection = MongoDB.Driver.MongoClientExtensions.GetServer(this.innerContext).GetDatabase(db)
+            var collection = MongoDB.Driver.MongoClientExtensions.GetServer(this.innerContext)
+                .GetDatabase(db)
                 .GetCollection<TEntity>(collectionName);
 
-            var query = ToMongoQuery(queryExpression);
-            var sortBy = ToMongoSortBy(sortByExpression);
-
             AggregateInner(
-                collection,
-                outputMode, doGetResults, out results, resultSet,
-                query, sortBy,
-                projectFunction, groupFunction, postProjectFunction,
-                skip, take,
-                options);
+                collection, outputMode, doGetResults, out results,
+                pipelineSteps, options);
         }
 
         private static void AggregateInner<TResult>(
             MongoDB.Driver.MongoCollection collection,
-            AggregateOuputMode outputMode, bool doGetResults, out IEnumerable<TResult> results, string resultSet,
-            MongoDB.Driver.IMongoQuery query, MongoDB.Driver.IMongoSortBy sortBy,
-            string projectFunction = null, string groupFunction = null, string postProjectFunction = null,
-            int? skip = null, int? take = null,
+            AggregateOuputMode outputMode, bool doGetResults, out IEnumerable<TResult> results,
+            IEnumerable<AggregateStep> pipelineSteps,
             AggregateOptions options = null)
         {
-            var pipelineStages = new List<MongoDB.Bson.BsonDocument>();
-
-            if (query != null)
-            {
-                var matchDoc = new MongoDB.Bson.BsonDocument(
-                    "$match", MongoDB.Bson.BsonExtensionMethods.ToBsonDocument(query));
-                pipelineStages.Add(matchDoc);
-            }
-
-            if (projectFunction != null)
-            {
-                var projectDoc = new MongoDB.Bson.BsonDocument(
-                    "$project", MongoDB.Bson.BsonDocument.Parse(projectFunction));
-                pipelineStages.Add(projectDoc);
-            }
-
-            if (groupFunction != null)
-            {
-                var groupDoc = new MongoDB.Bson.BsonDocument(
-                    "$group", MongoDB.Bson.BsonDocument.Parse(groupFunction));
-                pipelineStages.Add(groupDoc);
-            }
-
-            if (postProjectFunction != null)
-            {
-                var projectDoc2 = new MongoDB.Bson.BsonDocument(
-                    "$project", MongoDB.Bson.BsonDocument.Parse(postProjectFunction));
-                pipelineStages.Add(projectDoc2);
-            }
-
-            if (sortBy != null)
-            {
-                var sortDoc = new MongoDB.Bson.BsonDocument(
-                    "$sort", MongoDB.Bson.BsonExtensionMethods.ToBsonDocument(sortBy));
-                pipelineStages.Add(sortDoc);
-            }
-
-            if (skip != null)
-            {
-                var skipDoc = new MongoDB.Bson.BsonDocument(
-                    "$skip", new MongoDB.Bson.BsonInt32(skip.Value));
-                pipelineStages.Add(skipDoc);
-            }
-
-            if (take != null)
-            {
-                var limitDoc = new MongoDB.Bson.BsonDocument(
-                    "$limit", new MongoDB.Bson.BsonInt32(take.Value));
-                pipelineStages.Add(limitDoc);
-            }
-
-            if (resultSet != null)
-            {
-                var outDoc = new MongoDB.Bson.BsonDocument(
-                    "$out", new MongoDB.Bson.BsonString(resultSet));
-                pipelineStages.Add(outDoc);
-            }
+            var pipelineStages = pipelineSteps.Select(step => step.BsonDocument).ToList();
 
             var args = new MongoDB.Driver.AggregateArgs
             {
@@ -463,6 +414,10 @@ namespace PubComp.NoSql.MongoDbDriver
                     MongoDB.Bson.Serialization.BsonSerializer.Deserialize<TResult>(d))
                 : null;
         }
+
+        #endregion
+
+        #region EntitySet
 
         public abstract class EntitySet
         {
@@ -1298,23 +1253,13 @@ namespace PubComp.NoSql.MongoDbDriver
 
             public void Aggregate<TResult>(
                 AggregateOuputMode outputMode,
-                bool doGetResults, out IEnumerable<TResult> results, string resultSet = null,
-                Expression<Func<TEntity, bool>> queryExpression = null,
-                Expression<Func<TResult, Object>> sortByExpression = null,
-                string projectFunction = null, string groupFunction = null, string postProjectFunction = null,
-                int? skip = null, int? take = null,
+                bool doGetResults, out IEnumerable<TResult> results,
+                IEnumerable<AggregateStep> pipelineSteps,
                 AggregateOptions options = null)
             {
-                var query = ToMongoQuery(queryExpression);
-                var sortBy = ToMongoSortBy(sortByExpression);
-
                 AggregateInner(
-                    this.innerSet,
-                    outputMode, doGetResults, out results, resultSet,
-                    query, sortBy,
-                    projectFunction, groupFunction, postProjectFunction,
-                    skip, take,
-                    options);
+                    this.innerSet, outputMode, doGetResults, out results,
+                    pipelineSteps, options);
             }
 
             #region Navigation
@@ -1458,6 +1403,10 @@ namespace PubComp.NoSql.MongoDbDriver
             #endregion
         }
 
+        #endregion
+
+        #region FileSet
+
         public abstract class FileSet
         {
         }
@@ -1513,16 +1462,24 @@ namespace PubComp.NoSql.MongoDbDriver
                 this.innerFS.Delete(id.ToString());
             }
         }
+
+        #endregion
     }
 
-    public enum ReduceStoreMode { None, NewSet, ReplaceItems, Combine };
+    #region Reduce Options
 
-    public enum AggregateOuputMode { Cursor, Inline };
+    public enum ReduceStoreMode { None, NewSet, ReplaceItems, Combine };
 
     public class ReduceOptions
     {
         public bool DoUseJsMode { get; set; }
     }
+
+    #endregion
+
+    #region Aggregate Options
+
+    public enum AggregateOuputMode { Cursor, Inline };
 
     public class AggregateOptions
     {
@@ -1530,4 +1487,121 @@ namespace PubComp.NoSql.MongoDbDriver
         public int? BatchSize { get; set; }
         public TimeSpan? Timeout { get; set; }
     }
+
+    public abstract class AggregateStep
+    {
+        private readonly MongoDB.Bson.BsonDocument bsonDocument;
+
+        protected AggregateStep(string stepName, MongoDB.Bson.BsonValue bsonValue)
+        {
+            this.bsonDocument = new MongoDB.Bson.BsonDocument(stepName, bsonValue);
+        }
+
+        protected AggregateStep(string stepName, string jsonDocument)
+            : this(stepName, MongoDB.Bson.BsonDocument.Parse(jsonDocument))
+        {
+        }
+
+        protected AggregateStep(string stepName, int intValue)
+            : this(stepName, new MongoDB.Bson.BsonInt32(intValue))
+        {
+        }
+
+        public MongoDB.Bson.BsonDocument BsonDocument
+        {
+            get { return this.bsonDocument; }
+        }
+    }
+
+    public class AggregateFilter : AggregateStep
+    {
+        private const string StepName = "$match";
+
+        public AggregateFilter(MongoDB.Driver.IMongoQuery mongoQuery)
+            : base(StepName, MongoDB.Bson.BsonExtensionMethods.ToBsonDocument(mongoQuery))
+        {
+        }
+
+        public AggregateFilter(string jsonDocument) : base(StepName, jsonDocument)
+        {
+        }
+    }
+
+    public class AggregateFilter<TEntity> : AggregateFilter
+    {
+        public AggregateFilter(Expression<Func<TEntity, bool>> queryExpression)
+            : base(MongoDbContext.ToMongoQuery(queryExpression))
+        {
+        }
+    }
+
+    public class AggregateProject : AggregateStep
+    {
+        private const string StepName = "$project";
+
+        public AggregateProject(string jsonDocument) : base(StepName, jsonDocument)
+        {
+        }
+    }
+
+    public class AggregateGroup : AggregateStep
+    {
+        private const string StepName = "$group";
+
+        public AggregateGroup(string jsonDocument) : base(StepName, jsonDocument)
+        {
+        }
+    }
+
+    public class AggregateSort : AggregateStep
+    {
+        private const string StepName = "$sort";
+
+        public AggregateSort(MongoDB.Driver.IMongoSortBy mongoSortBy)
+            : base(StepName, MongoDB.Bson.BsonExtensionMethods.ToBsonDocument(mongoSortBy))
+        {
+        }
+
+        public AggregateSort(string jsonDocument) : base(StepName, jsonDocument)
+        {
+        }
+    }
+
+    public class AggregateSort<TEntity> : AggregateSort
+    {
+        public AggregateSort(Expression<Func<TEntity, object>> sortByExpression)
+            : base(MongoDbContext.ToMongoSortBy(sortByExpression))
+        {
+        }
+    }
+
+    public class AggregateSkip : AggregateStep
+    {
+        private const string StepName = "$skip";
+
+        public AggregateSkip(int value) : base(StepName, value)
+        {
+        }
+    }
+
+    public class AggregateTake : AggregateStep
+    {
+        private const string StepName = "$limit";
+
+        public AggregateTake(int value) : base(StepName, value)
+        {
+        }
+    }
+
+    public class AggregateOutput : AggregateStep
+    {
+        private const string StepName = "$out";
+
+        public AggregateOutput(string resultSet)
+            : base(StepName, new MongoDB.Bson.BsonString(resultSet))
+        {
+        }
+    }
+
+    #endregion
 }

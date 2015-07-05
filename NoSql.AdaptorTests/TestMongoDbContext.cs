@@ -518,7 +518,7 @@ namespace PubComp.NoSql.AdaptorTests
         #region Aggregation
 
         [TestMethod]
-        public void TestAggregation()
+        public void TestAggregationInline()
         {
             // Note: The reduction failed when I attempted to use Decimal instead of Double
 
@@ -533,34 +533,36 @@ namespace PubComp.NoSql.AdaptorTests
             {
                 context.UpdateIndexes(true);
 
+                var filter = new AggregateFilter<EntityForCalc>(e => e.OwnerId == id1);
+
                 // Select function for iterator
-                const string project =
+                var project = new AggregateProject(
                     @"{
                         OwnerId: 1,
                         Money: 1,
                         NumberOfTransactions: { $literal: 1 }
-                    }";
+                    }");
 
                 // Aggregation of values into a single result
-                const string group =
+                var group = new AggregateGroup(
                     @"{
                         _id: ""$OwnerId"",
                         NumberOfTransactions: { $sum: ""$NumberOfTransactions"" },
                         Money: { $sum: ""$Money"" },
                         Date: { $max: ""$Date"" }
-                    }";
+                    }");
 
                 // Enables normalizing result e.g. converting sum into average
-                const string postProject =
-                    @"{ NumberOfTransactions: 1, Money: { $add: [ ""$Money"", -0.1 ] }}";
+                var postProject = new AggregateProject(
+                    @"{ NumberOfTransactions: 1, Money: { $add: [ ""$Money"", -0.1 ] }}");
 
                 IEnumerable<AggregationResult> aggregationResults;
 
                 var set = (MongoDbContext.EntitySet<Guid, EntityForCalc>)context.EntitiesForCalc;
 
                 set.Aggregate(
-                    AggregateOuputMode.Inline, true, out aggregationResults, null,
-                    e => e.OwnerId == id1, null, project, group, postProject);
+                    AggregateOuputMode.Inline, true, out aggregationResults,
+                    new AggregateStep[] { filter, project, group, postProject });
 
                 var results = aggregationResults.ToList();
 
@@ -570,6 +572,124 @@ namespace PubComp.NoSql.AdaptorTests
 
                 Assert.AreEqual(numberOfTransactions, results[0].NumberOfTransactions);
                 Assert.IsTrue(Math.Abs(total1 - 0.1 - results[0].Money) <= 1);
+            }
+        }
+
+        [TestMethod]
+        public void TestAggregationCursor()
+        {
+            // Note: The reduction failed when I attempted to use Decimal instead of Double
+
+            Guid id1 = Guid.NewGuid();
+            Guid id2 = Guid.NewGuid();
+
+            int numberOfTransactions = 1000;
+            double total1, total2;
+            PrepareReductionData(id1, id2, numberOfTransactions, out total1, out total2);
+
+            using (var context = getTestContext() as MockMongoDbContext)
+            {
+                context.UpdateIndexes(true);
+
+                var filter = new AggregateFilter<EntityForCalc>(e => e.OwnerId == id1);
+
+                // Select function for iterator
+                var project = new AggregateProject(
+                    @"{
+                        OwnerId: 1,
+                        Money: 1,
+                        NumberOfTransactions: { $literal: 1 }
+                    }");
+
+                // Aggregation of values into a single result
+                var group = new AggregateGroup(
+                    @"{
+                        _id: ""$OwnerId"",
+                        NumberOfTransactions: { $sum: ""$NumberOfTransactions"" },
+                        Money: { $sum: ""$Money"" },
+                        Date: { $max: ""$Date"" }
+                    }");
+
+                // Enables normalizing result e.g. converting sum into average
+                var postProject = new AggregateProject(
+                    @"{ NumberOfTransactions: 1, Money: { $add: [ ""$Money"", -0.1 ] }}");
+
+                IEnumerable<AggregationResult> aggregationResults;
+
+                var set = (MongoDbContext.EntitySet<Guid, EntityForCalc>)context.EntitiesForCalc;
+
+                set.Aggregate(
+                    AggregateOuputMode.Cursor, true, out aggregationResults,
+                    new AggregateStep[] { filter, project, group, postProject });
+
+                var results = aggregationResults.ToList();
+
+                Assert.AreEqual(1, results.Count);
+
+                Assert.AreEqual(id1, results[0].Id);
+
+                Assert.AreEqual(numberOfTransactions, results[0].NumberOfTransactions);
+                Assert.IsTrue(Math.Abs(total1 - 0.1 - results[0].Money) <= 1);
+            }
+        }
+
+        [TestMethod]
+        public void TestAggregationCursorNewCollection()
+        {
+            // Note: The reduction failed when I attempted to use Decimal instead of Double
+
+            Guid id1 = Guid.NewGuid();
+            Guid id2 = Guid.NewGuid();
+
+            int numberOfTransactions = 1000;
+            double total1, total2;
+            PrepareReductionData(id1, id2, numberOfTransactions, out total1, out total2);
+
+            using (var context = getTestContext() as MockMongoDbContext)
+            {
+                context.UpdateIndexes(true);
+
+                var filter = new AggregateFilter<EntityForCalc>(e => e.OwnerId == id1);
+
+                // Select function for iterator
+                var project = new AggregateProject(
+                    @"{
+                        OwnerId: 1,
+                        Money: 1,
+                        NumberOfTransactions: { $literal: 1 }
+                    }");
+
+                // Aggregation of values into a single result
+                var group = new AggregateGroup(
+                    @"{
+                        _id: ""$OwnerId"",
+                        NumberOfTransactions: { $sum: ""$NumberOfTransactions"" },
+                        Money: { $sum: ""$Money"" },
+                        Date: { $max: ""$Date"" }
+                    }");
+
+                // Enables normalizing result e.g. converting sum into average
+                var postProject = new AggregateProject(
+                    @"{ NumberOfTransactions: 1, Money: { $add: [ ""$Money"", -0.1 ] }}");
+
+                var ouputCollection = new AggregateOutput("aggregateOutputSet");
+
+                IEnumerable<AggregationResult> aggregationResults;
+
+                var set = (MongoDbContext.EntitySet<Guid, EntityForCalc>)context.EntitiesForCalc;
+
+                set.Aggregate(
+                    AggregateOuputMode.Cursor, true, out aggregationResults,
+                    new AggregateStep[] { filter, project, group, postProject, ouputCollection });
+
+                var results = aggregationResults.ToList();
+
+                Assert.AreEqual(1, results.Count);
+
+                Assert.AreEqual(id1, results[0].Id);
+
+                Assert.AreEqual(numberOfTransactions, results[0].NumberOfTransactions);
+                Assert.IsTrue(Math.Abs(total1 - 0.1 - results[0].Money) <= 1e-10);
             }
         }
 
