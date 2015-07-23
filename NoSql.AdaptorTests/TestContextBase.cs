@@ -550,6 +550,36 @@ namespace PubComp.NoSql.AdaptorTests
         }
 
         [TestMethod]
+        public void DateTimeQueryTestWithExpression()
+        {
+            var id = Guid.NewGuid();
+            var date1 = new DateTime(2002, 04, 08, 16, 32, 04, 127);
+            var date2 = new DateTime(2002, 04, 08, 16, 32, 04, 128);
+            var date3 = new DateTime(2002, 04, 08, 16, 32, 04, 129);
+
+            using (var context = getTestContext())
+            {
+                var set = context.Dates;
+
+                var o1 = new Dates
+                {
+                    Id = id,
+                    Date2 = date2,
+                };
+
+                set.AddOrUpdate(o1);
+            }
+
+            using (var context = getTestContext())
+            {
+                var dates = context.Dates.Query(d => d.Date2 > date1 && d.Date2 < date3).ToList();
+                Assert.AreEqual(1, dates.Count);
+                Assert.AreEqual(id, dates[0].Id);
+                Assert.AreEqual(date2, dates[0].Date2);
+            }
+        }
+
+        [TestMethod]
         public void DateTimeNullableQueryTest()
         {
             var id = Guid.NewGuid();

@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using PubComp.NoSql.Core;
 
@@ -203,6 +204,11 @@ namespace PubComp.NoSql.ServiceStackRedis
             IQueryable<IEntity> IEntitySet.AsQueryable()
             {
                 return this.AsQueryable();
+            }
+
+            public IEnumerable<TEntity> Query(Expression<Func<TEntity, bool>> filter)
+            {
+                return this.innerSet.GetAll().AsQueryable().Where(filter);
             }
 
             public bool AddIfNotExists(TEntity entity)

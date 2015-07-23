@@ -93,3 +93,6 @@
 	* MongoDb adaptor: Added error check to map-reduce
 	* MongoDb adaptor: Change a few members from private to protected
 	* MongoDb adaptor: Exposed aggregation framework, currently with initial API
+
+4.0.0:
+	* Added IEnumerable<TEntity> Query(Expression<Func<TEntity, bool>> filter) to API

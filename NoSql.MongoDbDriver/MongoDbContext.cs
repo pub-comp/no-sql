@@ -653,6 +653,12 @@ namespace PubComp.NoSql.MongoDbDriver
                 return this.AsQueryable();
             }
 
+            public IEnumerable<TEntity> Query(Expression<Func<TEntity, bool>> filter)
+            {
+                var query = ToMongoQuery(filter);
+                return this.innerSet.Find(query);
+            }
+
             public bool AddIfNotExists(TEntity entity)
             {
                 if (EqualityComparer<TKey>.Default.Equals(entity.Id, default(TKey)))

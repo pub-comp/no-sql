@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 
 namespace PubComp.NoSql.Core
 {
@@ -55,6 +56,8 @@ namespace PubComp.NoSql.Core
     public interface IEntitySet<TKey, TEntity> : IEntitySet where TEntity : class, IEntity<TKey>
     {
         new IQueryable<TEntity> AsQueryable();
+
+        IEnumerable<TEntity> Query(Expression<Func<TEntity, bool>> filter);
 
         bool AddIfNotExists(TEntity entity);
 
