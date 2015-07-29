@@ -96,3 +96,7 @@
 
 4.0.0:
 	* Added IEnumerable<TEntity> Query(Expression<Func<TEntity, bool>> filter) to API
+
+4.1.0:
+	* MongoDb adaptor: Updated MongoDB.Driver to 2.0.1
+	* Redis adaptor: added support for connection strings

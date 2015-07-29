@@ -36,19 +36,21 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="MongoDB.Bson, Version=2.0.0.828, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="MongoDB.Bson, Version=2.0.1.27, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\MongoDB.Bson.2.0.0\lib\net45\MongoDB.Bson.dll</HintPath>
+      <HintPath>..\packages\MongoDB.Bson.2.0.1\lib\net45\MongoDB.Bson.dll</HintPath>
     </Reference>
-    <Reference Include="MongoDB.Driver, Version=2.0.0.828, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="MongoDB.Driver, Version=2.0.1.27, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\MongoDB.Driver.2.0.0\lib\net45\MongoDB.Driver.dll</HintPath>
+      <HintPath>..\packages\MongoDB.Driver.2.0.1\lib\net45\MongoDB.Driver.dll</HintPath>
     </Reference>
-    <Reference Include="MongoDB.Driver.Core">
-      <HintPath>..\packages\MongoDB.Driver.Core.2.0.0\lib\net45\MongoDB.Driver.Core.dll</HintPath>
+    <Reference Include="MongoDB.Driver.Core, Version=2.0.1.27, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\MongoDB.Driver.Core.2.0.1\lib\net45\MongoDB.Driver.Core.dll</HintPath>
     </Reference>
-    <Reference Include="MongoDB.Driver.Legacy">
-      <HintPath>..\packages\mongocsharpdriver.2.0.0\lib\net45\MongoDB.Driver.Legacy.dll</HintPath>
+    <Reference Include="MongoDB.Driver.Legacy, Version=2.0.1.27, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\mongocsharpdriver.2.0.1\lib\net45\MongoDB.Driver.Legacy.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -68,13 +70,13 @@
     <Compile Include="ReductionResult.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\NoSql.Core\NoSql.Core.csproj">
       <Project>{baa6a0d6-46c3-4abe-aa79-7e0763dcca6c}</Project>
       <Name>NoSql.Core</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />

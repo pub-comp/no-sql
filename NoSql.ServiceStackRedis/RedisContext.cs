@@ -14,13 +14,18 @@ namespace PubComp.NoSql.ServiceStackRedis
         private readonly IEnumerable<IEntitySet> entitySets;
 
         public RedisContext(RedisConnectionInfo connectionInfo)
-            : this(connectionInfo.Host, connectionInfo.Port, connectionInfo.Password, connectionInfo.Db)
+            : this(connectionString: connectionInfo.ConnectionString)
         {
         }
 
         public RedisContext(string host = "localhost", int port = 6379, string password = null, long db = 0)
+            : this(new RedisConnectionInfo { Host = host, Port = port, Password = password, Db = db })
         {
-            this.innerContext = new ServiceStack.Redis.RedisClient(host, port, null, 0);
+        }
+
+        public RedisContext(string connectionString)
+        {
+            this.innerContext = new ServiceStack.Redis.RedisClient(new Uri(connectionString));
             var entitySets = new List<IEntitySet>();
 
             var entitySetProperties =
