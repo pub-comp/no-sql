@@ -10,7 +10,7 @@ namespace PubComp.NoSql.ServiceStackRedis
 {
     public abstract class RedisContext : IDomainContext
     {
-        private readonly ServiceStack.Redis.RedisClient innerContext;
+        protected readonly ServiceStack.Redis.RedisClient innerContext;
         private readonly IEnumerable<IEntitySet> entitySets;
 
         public RedisContext(RedisConnectionInfo connectionInfo)
@@ -118,8 +118,8 @@ namespace PubComp.NoSql.ServiceStackRedis
 
         public class EntitySet<TKey, TEntity> : EntitySet, IEntitySet<TKey, TEntity> where TEntity : class, IEntity<TKey>
         {
-            private readonly RedisContext parent;
-            private readonly ServiceStack.Redis.Generic.RedisTypedClient<TEntity> innerSet;
+            protected readonly RedisContext parent;
+            protected readonly ServiceStack.Redis.Generic.RedisTypedClient<TEntity> innerSet;
             private readonly string keyHeader;
 
             static EntitySet()
