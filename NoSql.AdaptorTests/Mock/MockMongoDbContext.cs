@@ -80,5 +80,7 @@ namespace PubComp.NoSql.AdaptorTests.Mock
         public IDocumentSet<Guid, Tag> Tags2 { get; private set; }
 
         public IEntitySet<Guid, SpecificEntity> SpecificEntities { get; private set;  }
+
+        public IDocumentSet<Guid, EntityForAggregation> EntitiesForAggregation { get; private set; }
     }
 }

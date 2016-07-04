@@ -97,6 +97,7 @@
     <Compile Include="MocksForAccessTest\Status.cs" />
     <Compile Include="Mock\BaseEntity.cs" />
     <Compile Include="Mock\Dates.cs" />
+    <Compile Include="Mock\EntityForAggregation.cs" />
     <Compile Include="Mock\EntityForCalc.cs" />
     <Compile Include="Mock\EntityForUpdates.cs" />
     <Compile Include="Mock\InhertianceEntityWithIgnoredData.cs" />

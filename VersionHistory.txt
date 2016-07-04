@@ -100,3 +100,6 @@
 4.1.0:
 	* MongoDb adaptor: Updated MongoDB.Driver to 2.0.1
 	* Redis adaptor: added support for connection strings, changed a few fields from private to protected
+
+4.2.0:
+	* MongoDb adaptor: Expanded aggregation steps support

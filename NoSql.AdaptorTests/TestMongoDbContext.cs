@@ -575,6 +575,116 @@ namespace PubComp.NoSql.AdaptorTests
             }
         }
 
+        public class IdName
+        {
+            public Guid Id1 { get; set; }
+            public string Name1 { get; set; }
+        }
+
+        public class AggregationResult2 : IEntity<IdName>
+        {
+            public IdName Id { get; set; }
+            public int NamesPerId { get; set; }
+            public int IdsPerName { get; set; }
+        }
+
+        [TestMethod]
+        public void TestAggregationGroupUnwind()
+        {
+            // Note: The reduction failed when I attempted to use Decimal instead of Double
+
+            var documents = new List<EntityForAggregation>();
+
+            var ids = new Guid[100];
+            for (int cnt = 0; cnt < ids.Length; cnt++)
+            {
+                ids[cnt] = Guid.NewGuid();
+            }
+
+            var names = new string[26];
+            for (int cnt = 0; cnt < names.Length; cnt++)
+            {
+                names[cnt] = new string((char)(cnt + (byte)'A'), 10);
+            }
+
+            // Input data
+            for (int cnt = 0; cnt < 1000; cnt++)
+            {
+                documents.Add(
+                    new EntityForAggregation
+                    {
+                        Id = Guid.NewGuid(),
+                        EntityId = ids[cnt % ids.Length],
+                        Name = names[cnt % names.Length],
+                        Count = 0,
+                    });
+            }
+
+            // Expected values
+            var idsPerName = documents.GroupBy(d => d.Name)
+                .ToDictionary(g => g.Key, g => g.Select(d => d.EntityId).Distinct().Count());
+            var namesPerId = documents.GroupBy(d => d.EntityId)
+                .ToDictionary(g => g.Key, g => g.Select(d => d.Name).Distinct().Count());
+            var idNameCombos = documents.GroupBy(d => Tuple.Create(d.EntityId, d.Name)).Count();
+
+            List<AggregationResult2> results;
+
+            using (var context = getTestContext() as MockMongoDbContext)
+            {
+                context.EntitiesForAggregation.Delete(x => true);
+                context.EntitiesForAggregation.Add(documents);
+
+                var groupById = new AggregateGroup(
+                    @"{
+                        _id: ""$EntityId"",
+                        ""Names"": { $push : ""$Name"" },
+                        ""NamesPerId"": { $sum: 1 }
+                    }");
+
+                var unwindNames = AggregateUnwind.FromFieldPath(@"$Names");
+
+                var projectNames = new AggregateProject(
+                    @"{
+                        ""Name"": ""$Names"",
+                        ""NamesPerId"": 1
+                    }");
+
+                var groupByName = new AggregateGroup(
+                    @"{
+                        _id: ""$Name"",
+                        ""Ids"": { $push : { ""Id"": ""$_id"", ""NamesPerId"": ""$NamesPerId"" } },
+                        ""IdsPerName"": { $sum: 1 }
+                    }");
+
+                var unwindIds = AggregateUnwind.FromFieldPath(@"$Ids");
+
+                var projectIds = new AggregateProject(
+                    @"{
+                        _id: { ""Id1"": ""$Ids.Id"", ""Name1"": ""$_id"" },
+                        ""IdsPerName"": 1,
+                        ""NamesPerId"": ""$Ids.NamesPerId""
+                    }");
+
+                IEnumerable<AggregationResult2> aggregationResults;
+
+                var set = (MongoDbContext.EntitySet<Guid, EntityForAggregation>)context.EntitiesForAggregation;
+
+                set.Aggregate(
+                    AggregateOuputMode.Inline, true, out aggregationResults,
+                    new [] { groupById, unwindNames, projectNames, groupByName, unwindIds, projectIds });
+
+                results = aggregationResults.ToList();
+            }
+
+            Assert.AreEqual(idNameCombos, results.Count);
+
+            foreach (var result in results)
+            {
+                Assert.AreEqual(namesPerId[result.Id.Id1], result.NamesPerId);
+                Assert.AreEqual(idsPerName[result.Id.Name1], result.IdsPerName);
+            }
+        }
+
         [TestMethod]
         public void TestAggregationCursor()
         {

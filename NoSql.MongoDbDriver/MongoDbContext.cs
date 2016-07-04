@@ -1541,6 +1541,17 @@ namespace PubComp.NoSql.MongoDbDriver
         }
     }
 
+    public class AggregateOther : AggregateStep
+    {
+        public AggregateOther(string stepName, string jsonDocument) : base(stepName, jsonDocument)
+        {
+        }
+
+        public AggregateOther(string stepName, object value) : base(stepName, MongoDB.Bson.BsonValue.Create(value))
+        {
+        }
+    }
+
     public class AggregateProject : AggregateStep
     {
         private const string StepName = "$project";
@@ -1556,6 +1567,24 @@ namespace PubComp.NoSql.MongoDbDriver
 
         public AggregateGroup(string jsonDocument) : base(StepName, jsonDocument)
         {
+        }
+    }
+
+    public class AggregateUnwind : AggregateStep
+    {
+        private const string StepName = "$unwind";
+
+        public AggregateUnwind(string jsonDocument) : base(StepName, jsonDocument)
+        {
+        }
+
+        private AggregateUnwind(MongoDB.Bson.BsonString fieldPath) : base(StepName, fieldPath)
+        {
+        }
+
+        public static AggregateStep FromFieldPath(string fieldPath)
+        {
+            return new AggregateUnwind(new MongoDB.Bson.BsonString(fieldPath));
         }
     }
 
