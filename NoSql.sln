@@ -42,37 +42,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".NuGetPack", ".NuGetPack", 
 	EndProjectSection
 EndProject
 Global
-	GlobalSection(TeamFoundationVersionControl) = preSolution
-		SccNumberOfProjects = 8
-		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
-		SccTeamFoundationServer = https://tfs.codeplex.com/tfs/tfs27
-		SccLocalPath0 = .
-		SccProjectUniqueName1 = NoSql.AdaptorTests\\NoSql.AdaptorTests.csproj
-		SccProjectTopLevelParentUniqueName1 = NoSql.sln
-		SccProjectName1 = NoSql.AdaptorTests
-		SccLocalPath1 = NoSql.AdaptorTests
-		SccProjectUniqueName2 = NoSql.Core\\NoSql.Core.csproj
-		SccProjectName2 = NoSql.Core
-		SccLocalPath2 = NoSql.Core
-		SccProjectUniqueName3 = NoSql.MongoDbDriver\\NoSql.MongoDbDriver.csproj
-		SccProjectName3 = NoSql.MongoDbDriver
-		SccLocalPath3 = NoSql.MongoDbDriver
-		SccProjectUniqueName4 = NoSql.ServiceStackRedis\\NoSql.ServiceStackRedis.csproj
-		SccProjectName4 = NoSql.ServiceStackRedis
-		SccLocalPath4 = NoSql.ServiceStackRedis
-		SccProjectUniqueName5 = NoSql.Core.NuGet\\NoSql.Core.NuGet.csproj
-		SccProjectTopLevelParentUniqueName5 = NoSql.sln
-		SccProjectName5 = NoSql.Core.NuGet
-		SccLocalPath5 = NoSql.Core.NuGet
-		SccProjectUniqueName6 = NoSql.MongoDbDriver.NuGet\\NoSql.MongoDbDriver.NuGet.csproj
-		SccProjectTopLevelParentUniqueName6 = NoSql.sln
-		SccProjectName6 = NoSql.MongoDbDriver.NuGet
-		SccLocalPath6 = NoSql.MongoDbDriver.NuGet
-		SccProjectUniqueName7 = NoSql.ServiceStackRedis.NuGet\\NoSql.ServiceStackRedis.NuGet.csproj
-		SccProjectTopLevelParentUniqueName7 = NoSql.sln
-		SccProjectName7 = NoSql.ServiceStackRedis.NuGet
-		SccLocalPath7 = NoSql.ServiceStackRedis.NuGet
-	EndGlobalSection
+	
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
